@@ -1,5 +1,5 @@
 ﻿No,有効,API名,メソッド,URL,クエリパラメータ,ヘッダ,ボディ形式,リクエストボディ,待機時間(ms),期待ステータス,応答検証文字列,応答時間上限(ms),正規表現抽出,JSON抽出,前処理スクリプト,後処理スクリプト,備考
-#説明,Y / N,任意,GET / POST,必須（https://～）,名前=値（改行 / & 区切り）,名前: 値（改行区切り）,auto / json / form / raw,JSON 等 / 名前=値,数値（ms）,"200 / 200,201",文字列（改行区切り）,数値（ms）,変数名=正規表現（改行区切り）,変数名=JSONPath（改行区切り）,Groovy,Groovy,任意
+#説明,Y / N,任意,GET / POST,必須（https://～）,名前=値（改行 / & 区切り）,名前: 値（改行区切り）,auto / json / form / raw / xml / multipart,JSON 等 / 名前=値,数値（ms）,"200 / 200,201",文字列（改行区切り）,数値（ms）,変数名=正規表現（改行区切り）,変数名=JSONPath（改行区切り）,Groovy,Groovy,任意
 1,Y,ログイン(POST JSON),POST,https://postman-echo.com/post,,"Content-Type: application/json
 X-Correlation-ID: ${REQUEST_ID}
 X-Signature: ${SIGNATURE}",json,"{

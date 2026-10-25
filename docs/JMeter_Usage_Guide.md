@@ -1,6 +1,6 @@
 # JMeter APIテスト 利用方法
 
-> 対象: Apache JMeter 5.6.3 ／ RHEL 9.8 ／ Windows 11 ／ ツール: jmeter_api_tool v1.0.0（2026-10-25 出力）
+> 対象: Apache JMeter 5.6.3 ／ RHEL 9.8 ／ Windows 11 ／ ツール: jmeter_api_tool v1.1.0（2026-10-25 出力）
 
 本書は、REST API の定義（URL・HTTPメソッド・クエリパラメータ・ヘッダ・リクエストボディ）を Excel または CSV に記入するか OpenAPI 定義（JSON）を指定して、JMeter のテスト計画ファイル（JMX）を自動生成して実行し、結果を確認するまでの手順をまとめたものです。
 
@@ -136,7 +136,7 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 > CSV を Excel で保存する場合は「CSV UTF-8（コンマ区切り）」を選んでください。Shift_JIS の「CSV（コンマ区切り）」で保存したファイルも自動判別して読み込めます。
 
 ### curl コマンドから API を追加する（add-curl）
-ブラウザの開発者ツール（ネットワーク → 右クリック →「Copy as cURL」）や API の仕様書にある curl コマンドを解析して、API一覧に 1 行追加します。Excel は「API一覧」シートの最後の API の次の行（空白行）に、CSV はファイルの末尾に追加します。元のファイルは「ファイル名.日時.bak」に退避してから書き換えます。
+ブラウザの開発者ツール（ネットワーク → 右クリック →「Copy as cURL」）や API の仕様書にある curl コマンドを解析して、API一覧に追加します（1 コマンド = 1 行。「Copy all as cURL」でコピーした複数のコマンドもまとめて追加できます）。Excel は「API一覧」シートの最後の API の次の行（空白行）に、CSV はファイルの末尾に追加します。元のファイルは「ファイル名.日時.bak」に退避してから書き換えます。
 
 ```bash
 # RHEL 9.8
@@ -153,10 +153,10 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 | sh のオプション | PowerShell のオプション | 説明 |
 |---|---|---|
 | -i ファイル | -InputFile（-i） | 追加先の API一覧（.xlsx / .csv）。必須 |
-| --curl-file ファイル | -CurlFile ファイル | curl コマンドを書いたテキストファイル（コピーした内容をそのまま保存したもの。行末の \ ・ ^ ・ ` で改行した複数行のコマンドも可） |
+| --curl-file ファイル | -CurlFile ファイル | curl コマンドを書いたテキストファイル（コピーした内容をそのまま保存したもの。行末の \ ・ ^ ・ ` で改行した複数行のコマンド、複数のコマンドも可） |
 | --curl "curl …" | -Curl "curl …" | curl コマンドを文字列で指定（" を含むコマンドは --curl-file / -CurlFile で指定してください） |
 | -- curl … | （なし） | -- の後ろに curl コマンドをそのまま書く（sh のみ） |
-| --name API名 | -ApiName API名 | API名（省略時は「メソッド パス」。例: POST /v1/orders） |
+| --name API名 | -ApiName API名 | API名（省略時は「メソッド パス」。例: POST /v1/orders。複数のコマンドを追加する場合は、すべての行に同じ API名を設定） |
 | --dry-run | -DryRun | 追加する行を表示するだけで、ファイルは書き換えない |
 
 <!-- cols: 40,78 -->
@@ -172,8 +172,8 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 | -b / --cookie、-A / --user-agent、-e / --referer | ヘッダ Cookie / User-Agent / Referer（-b ファイル名 は読み込まない） |
 | -s・-L・-k・--compressed など | JMeter の HTTP リクエストに関係しないため無視する（-x プロキシ・--cert など JMeter で別に設定するものは、設定方法を警告で表示して無視） |
 
-- 1 回に追加するのは 1 行です（&& や ; でつないだ 2 つ目以降のコマンドと、--next 以降は読みません）。
-- No は既存の No の最大値 + 1、有効は Y、備考は「curl コマンドから追加」です。Excel は書式（罫線・折り返し）を上の行から引き継ぎ、行の高さを内容に合わせます。
+- 複数の curl コマンドを改行・;・&（&& / ||）で区切って並べると、コマンドごとに 1 行ずつ、上から順に追加します（ブラウザの「Copy all as cURL」の bash 形式は ;、cmd 形式は & で区切られています）。| の後ろの jq など curl 以外のコマンドと、--next 以降のリクエストは読みません。
+- No は既存の No の最大値 + 1 から順に付け、有効は Y、備考は「curl コマンドから追加」です。Excel は書式（罫線・折り返し）を上の行から引き継ぎ、行の高さを内容に合わせます。
 - CSV は元の文字コード（UTF-8 / UTF-8（BOM 付き）/ Shift_JIS / UTF-16）と改行コードのまま追記します。Shift_JIS で表せない文字を含む場合はエラーになるため、CSV を UTF-8 で保存し直してください。
 - 追加した後は generate で JMX を生成します。生成済みの JMX がある場合は generate -u で、追加した API だけを JMX に追加できます（「8.JMXの更新」参照）。
 
@@ -224,6 +224,7 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 
 - ON / OFF / DISABLE の項目は、ON = 生成して有効、OFF = 生成しない、DISABLE = 生成するが無効化（GUI で右クリック →「Enable」ですぐ使える）を表します。
 - 説明欄の「-J名前」は、実行時に -J名前=値（run コマンドでは -J 名前=値 / -Prop 名前=値）で値を変更できることを表します。
+- 数値の設定が範囲外の場合（threads・throughput_per_min が 1 未満、loops が -1 未満、それ以外が 0 未満など）と、random_min が random_max より大きい場合は、警告を表示して既定値を使います。
 
 <!-- cols: 12,28,22,16,62 -->
 | 区分 | 設定キー | 設定項目 | 既定値 | 説明 |
@@ -298,12 +299,12 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 | No |  | 実行順の番号（ラベル APIxx に使用）。空欄は自動採番。# で始まる行は読み飛ばす | `1` |
 | 有効 |  | Y = 有効、N = 無効化した状態で生成。空欄 = Y | `Y` |
 | API名 |  | HTTP リクエストの名前（レポートのラベル）。空欄はメソッドとパス | `ログイン` |
-| メソッド | ○ | HTTP メソッド（GET / POST。PUT / PATCH / DELETE も可） | `POST` |
+| メソッド | ○ | HTTP メソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS / TRACE） | `POST` |
 | URL | ○ | 完全な URL、またはベースURL 設定時は「/」で始まるパス。${変数} 可。? 以降のクエリも可 | `https://api.example.com/v1/users` |
 | クエリパラメータ |  | URL のクエリパラメータ | `page=1`<br>`size=20` |
 | ヘッダ |  | この API だけに付けるヘッダ（全 API 共通のヘッダは設定 common_headers） | `Authorization: Bearer ${AUTH_TOKEN}` |
-| ボディ形式 |  | リクエストボディの形式。空欄 = auto（自動判定） | `json` |
-| リクエストボディ |  | POST 等で送る本文。form 形式は「名前=値」を改行 / & 区切り | `{"userId":"${USER_ID}"}` |
+| ボディ形式 |  | リクエストボディの形式（auto / json / form / raw / xml / multipart）。空欄 = auto（自動判定） | `json` |
+| リクエストボディ |  | POST 等で送る本文（前後の空白・改行も含めてそのまま送信）。form / multipart 形式は「名前=値」を改行 / & 区切り | `{"userId":"${USER_ID}"}` |
 | 待機時間(ms) |  | API 呼び出し前に待つ時間（Constant Timer）。空欄 = 設定 default_wait_ms、0 = 待機なし | `1000` |
 | 期待ステータス |  | 期待する HTTP ステータス（カンマ区切りで複数可）。4xx / 5xx を書くと異常系テストとして扱う | `200` |
 | 応答検証文字列 |  | 応答本文に含まれるべき文字列。複数書くとすべて含む場合に成功 | `"result":"OK"` |
@@ -319,9 +320,15 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 - 先頭の列（No）が # で始まる行はコメントとして読み飛ばします（テンプレートの 4 行目の記入説明など）。
 - URL・パラメータ・ヘッダ・ボディには ${変数名} で JMeter の変数・関数を埋め込めます（例: `${USER_ID}`、`${SEQ}`、`${__UUID()}`）。
 - 「有効」を N にした API は、生成はされますが無効化された状態になります。
-- GET / DELETE / OPTIONS のクエリパラメータは HTTP リクエストの「Parameters」タブに設定されます。それ以外（POST / PUT / PATCH / HEAD など）の場合は URL のパスに付与されます（値は UTF-8 で URL エンコード。${...} の部分はそのまま）。
-- 既に URL エンコード済みの値（%E3%83%86 など）は、二重にエンコードしないよう自動で判定します。
-- GET / DELETE / HEAD / OPTIONS ではリクエストボディは使用できません（指定した場合は警告を表示して無視します）。
+- GET のクエリパラメータは HTTP リクエストの「Parameters」タブに設定されます。それ以外のメソッドの場合は URL のパスに付与されます（値は UTF-8 で URL エンコード。${...} の部分はそのまま）。JMeter 5.6.3 は DELETE の「Parameters」を URL とボディの両方に送り、HEAD / TRACE の「Parameters」は送らないためです。
+- URL に書いたクエリ（? 以降）の + は空白として扱います（%20 にして送信）。
+- 名前か値に %XX（%E3%83%86 など）を含む組は URL エンコード済みとして扱い、残りの文字（空白・日本語など）だけをエンコードします（二重にエンコードしません）。%XX を含まない組は JMeter がエンコードします。
+- multipart のボディは、%XX を元の文字に戻した値をそのまま送信します。
+- リクエストボディは記入したとおり（前後の空白・改行を含めて）送信します。空白だけのセルは空欄として扱います。
+- GET / DELETE / HEAD / OPTIONS / TRACE ではリクエストボディは使用できません（指定した場合は警告を表示して無視します）。
+- URL は http / https（${PROTOCOL} のような変数も可）とホスト名が必要です。ホスト名が無い・ポート番号が 1～65535 でないなど、正しくない URL の API は警告を表示してスキップします。URL の「ユーザー名:パスワード@」は送信されないため、警告を表示して取り除きます（Basic 認証はヘッダに Authorization: Basic … を記入してください）。
+- ヘッダに Cookie を書いた場合、クッキー管理（設定 cookie_manager）が有効でその URL へ送るクッキー（設定 cookies・応答の Set-Cookie）があると、JMeter はヘッダの Cookie をそのクッキーで置き換えます（生成時に警告を表示します）。クッキーは設定 cookies に記入してください。
+- CSV の引用符（"）が閉じられていない場合や、Excel の「API一覧」「設定」シートに計算結果の無い数式・エラー値（#N/A など）のセルがある場合は、値が欠けたまま生成しないようエラーにします。
 
 ### ボディ形式（auto の場合の自動判定）
 <!-- cols: 26,16,76 -->
@@ -331,6 +338,8 @@ input フォルダに次の 4 ファイルが作成されます（既存ファ�
 | < で始まる | raw（XML） | 本文をそのまま送信。Content-Type が未指定なら application/xml を付与 |
 | 名前=値 の形式（改行 / & 区切り） | form | パラメータとして送信（application/x-www-form-urlencoded） |
 | 上記以外 | raw | 本文をそのまま送信（Content-Type はヘッダ列で指定） |
+
+- ボディ形式は auto のほか、json / form / raw / xml（本文をそのまま送信。Content-Type が未指定なら application/xml を付与）/ multipart（名前=値 を multipart/form-data のテキスト項目として送信）を指定できます。
 
 ## 6.OpenAPI定義から生成
 <!-- summary: OpenAPI 定義（JSON）から JMX を生成する手順・変換ルール・OpenAPI 用設定ファイル -->
@@ -353,8 +362,8 @@ generate コマンドの -i に OpenAPI 3.0.x の定義ファイル（JSON、拡
 |---|---|---|
 | -c ファイル | -OpenApiConfig（-c） | OpenAPI 用設定ファイル（下記）。省略時は各項目の既定値を使用 |
 | --seed 数 | -Seed 数 | テストデータの乱数シード（0 以上の整数・12 桁以内）。同じ値なら同じテストデータを再生成します。省略時は毎回ランダム（使ったシードは生成時に表示） |
-| --any-method メソッド | -AnyMethod メソッド | x-amazon-apigateway-any-method（ANY）の API で送るメソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS。既定: GET） |
-| --required-only | -RequiredOnly | 必須（required）のパラメータ・プロパティだけを生成 |
+| --any-method メソッド | -AnyMethod メソッド | x-amazon-apigateway-any-method（ANY）の API で送るメソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS / TRACE。既定: GET） |
+| --required-only | -RequiredOnly | 必須（required）のパラメータ・プロパティ・リクエストボディだけを生成 |
 | --use-examples | -UseExamples | example / default があればランダム値より優先して使用 |
 | --placeholder-value 数値 | -PlaceholderValue 数値 | 値の位置に引用符なしで書かれた ${...}（JSON として読めない部分）に仮に入れる数値（既定: 3000） |
 
@@ -366,17 +375,19 @@ generate コマンドの -i に OpenAPI 3.0.x の定義ファイル（JSON、拡
 | API一覧の列 | OpenAPI 定義から設定する値 |
 |---|---|
 | No / 有効 / API名 | 定義の順番 / Y / 「メソッド パス [operationId]」（ANY は「ANY(GET) パス」） |
-| メソッド / URL | 操作のメソッドとパス。パスパラメータはデータ型に合ったランダム値（URL エンコード済み）。接続先とパスの先頭は設定 base_url |
-| クエリパラメータ | in: query のパラメータ（style / explode に従って展開） |
+| メソッド / URL | 操作のメソッドとパス。パスパラメータはデータ型に合ったランダム値（style: simple / label / matrix と explode に従い、区切り文字以外を URL エンコード）。接続先とパスの先頭は設定 base_url（operation / path に servers がある場合はその接続先） |
+| クエリパラメータ | in: query のパラメータ（style / explode に従って展開。explode しない配列・オブジェクトと spaceDelimited / pipeDelimited は、各値を URL エンコードしてから区切り文字でつなぐ。content で定義したパラメータは JSON などの文字列） |
 | ヘッダ | Content-Type（リクエストボディの形式）、Accept（成功応答の形式）、in: header / in: cookie のパラメータ、OpenAPI 用設定 API_HEADERS の値（同じ名前のヘッダは API_HEADERS の値を使用） |
-| ボディ形式 / リクエストボディ | requestBody の定義から生成（JSON → json、application/x-www-form-urlencoded → form、multipart/form-data → multipart、XML・テキストなど → raw） |
+| ボディ形式 / リクエストボディ | requestBody の定義から生成（JSON → json、application/x-www-form-urlencoded → form（encoding の style / explode に対応）、multipart/form-data → multipart、XML → xml、テキストなど → raw） |
 | 期待ステータス | 2xx の応答コード（カンマ区切り。2XX だけの場合は空欄） |
 | 備考 | 概要・説明・operationId・認可（security）・API Gateway 統合（x-amazon-apigateway-integration）・乱数シードなど |
 
 - パラメータ・リクエストボディの値は、データ型・format・pattern・minimum / maximum・enum などの定義からランダムに生成します。生成の規則は JMeter_Tools の openapi2jmx と同じで、同じシードなら同じ値になります。
 - 待機時間は設定 default_wait_ms を使います。正規表現抽出・JSON抽出・前処理・後処理・応答検証文字列・応答時間上限は生成しないため、必要に応じて JMeter GUI で追加してください。
 - 認証ヘッダ（Authorization・API-Key）はランダム値では通らないため、OpenAPI 定義のパラメータからは生成しません。Authorization は設定 common_headers、または OpenAPI 用設定ファイルの HEADERS / TOKEN_DIR で、API-Key は API_HEADERS で指定します（API_HEADERS の既定値の API-Key: XXXXXXX は実際のキーに書き換えてください）。指定が無い場合は生成時に警告を表示します。
-- GET / DELETE / HEAD / OPTIONS のリクエストボディは、Excel / CSV と同じ規則で送信しません（警告を表示します）。
+- GET / DELETE / HEAD / OPTIONS / TRACE のリクエストボディは、Excel / CSV と同じ規則で送信しません（警告を表示します）。
+- operation または path に servers がある場合は、その servers[0].url をその API の接続先にします（相対 URL はドキュメントの接続先のホストを使います）。設定ファイル（-s）で base_url を指定した場合は、すべての API をその接続先に送ります。OpenAPI 用設定の PROTOCOL / HOST / PORT は operation / path の servers にも反映します。
+- in: cookie のパラメータはヘッダ Cookie に設定します。クッキー管理（設定 cookie_manager）が有効でクッキーがあると JMeter が置き換えるため、生成時に警告を表示します。
 - 設定ファイルで空欄の base_url（servers[0].url。無い場合は http://localhost:8080）・test_plan_name（「タイトル APIのバージョン（OpenAPI のバージョン）」）・output_file（「タイトル.jmx」）は OpenAPI 定義の値を使います（output_file は -n / -JmxName が優先）。
 - 共通ヘッダ・クッキー・連番・CSV / Excel データ読込・結果出力などの要素は、Excel / CSV から生成する場合と同じく設定（「4.入力項目_設定」）に従って生成されます。CSV / Excel データ読込は既定で ON のため、サンプルデータ（data/testdata.csv / .xlsx）も作成されます。使わない場合は設定 csv_data / excel_data を OFF にしてください。
 
@@ -386,16 +397,16 @@ OpenAPI 定義から生成する場合だけ使う設定ファイルです。ini
 <!-- cols: 14,28,24,26,60 -->
 | 区分 | 設定キー | 設定項目 | 既定値 | 説明 |
 |---|---|---|---|---|
-| 接続先 | `PROTOCOL` | プロトコル | （空欄） | 共通変数 PROTOCOL の既定値（http / https）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JPROTOCOL=値 で変更できます |
-| 接続先 | `HOST` | ホスト名 | （空欄） | 共通変数 HOST の既定値（例: api.example.com）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JHOST=値 で変更できます |
-| 接続先 | `PORT` | ポート番号 | （空欄） | 共通変数 PORT の既定値（1～65535）。空欄 = 未設定（ポート番号なし。http は 80 / https は 443 で接続）。PROTOCOL と HOST も空欄の場合は OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JPORT=値 で変更できます |
+| 接続先 | `PROTOCOL` | プロトコル | （空欄） | 共通変数 PROTOCOL の既定値（http / https）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JPROTOCOL=値 で変更できます |
+| 接続先 | `HOST` | ホスト名 | （空欄） | 共通変数 HOST の既定値（例: api.example.com）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JHOST=値 で変更できます |
+| 接続先 | `PORT` | ポート番号 | （空欄） | 共通変数 PORT の既定値（1～65535）。空欄 = 未設定（ポート番号なし。http は 80 / https は 443 で接続）。PROTOCOL と HOST も空欄の場合は OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JPORT=値 で変更できます |
 | HTTPヘッダ | `HEADERS` | HTTPヘッダ | （空欄） | 全 API に付ける HTTP ヘッダ（共通ヘッダの HTTP Header Manager に追加）。「名前: 値」を改行区切り（例: X-Api-Key: キーの値）。設定 common_headers と同じ名前のヘッダはこちらを使います |
 | HTTPヘッダ | `API_HEADERS` | 各APIのHTTPヘッダ（初期値） | Accept: application/json<br>Transaction-ID: XXXXXXXXX<br>Transaction-Class: 1<br>User-ID: xxxxxxxx<br>API-Key: XXXXXXX | OpenAPI 定義から生成する各 API のヘッダ（API ごとの HTTP Header Manager）の初期値（生成後に JMeter で API ごとに変更できます）。「名前: 値」を改行区切り。OpenAPI 定義から求めた同じ名前のヘッダ（Accept など）はこちらの値を使います。空欄 = 既定値。付けない場合は「なし」と記入 |
 | アクセストークン | `TOKEN_DIR` | アクセストークンのフォルダ | （空欄） | 指定すると、共通ヘッダに Authorization: Bearer ${ACCESS_TOKEN} を追加し、JMeter の実行中に API を呼び出すたびに、このフォルダ直下の拡張子 .token のファイルのうち更新日時が最も新しいファイルの内容を ${ACCESS_TOKEN} に設定します（HEADERS に Authorization を書いた場合はその値を使用）。区切りは \ と / のどちらでも可、相対パスは JMX のフォルダ基準。Windows と Linux のフォルダを ; で区切って書くと、存在する方を使います（例: C:\work\tokens;/home/user/tokens）。実行時は -JACCESS_TOKEN_DIR=フォルダ で変更できます |
 | OpenAPI定義の変数 | `PUBLIC_BASE_URL` | ベースURL（${public_base_url}） | （空欄） | OpenAPI 定義（servers[0].url）のプレースホルダ ${public_base_url} に入れる値。URL（例: https://api.example.com/v1）は接続先とパスの先頭に、パス（例: /v1）はパスの先頭（コンテキストルート）に使います。空欄 = 未設定（${public_base_url} を取り除き、パスに付けません） |
 | OpenAPI定義の変数 | `NAME_PREFIX` | 名前の接頭辞（${name_prefix}） | （空欄） | OpenAPI 定義（info.title）のプレースホルダ ${name_prefix} に入れる値（例: dev）。テストプラン名と出力する JMX のファイル名に使われます。空欄 = 未設定（${name_prefix} を隣の区切り文字（- _ . / 空白）ごと取り除きます。例: ${name_prefix}-api → api） |
 
-- PROTOCOL / HOST / PORT は、記入した項目だけ base_url の接続先を置き換え、パス（例: /v1）はそのまま使います。PORT が空欄の場合はポート番号を付けません（http は 80 / https は 443 で接続）。実行時の -JPROTOCOL= / -JHOST= / -JPORT= も使えます。
+- PROTOCOL / HOST / PORT は、記入した項目だけ base_url と operation / path の servers の接続先を置き換え、パス（例: /v1）はそのまま使います。PORT が空欄の場合はポート番号を付けません（http は 80 / https は 443 で接続）。実行時の -JPROTOCOL= / -JHOST= / -JPORT= も使えます。
 - API_HEADERS の値は各 API のヘッダ（API ごとの HTTP Header Manager）の初期値です。生成後は JMeter で API ごとに変更でき、HEADERS（共通ヘッダ）と同じ名前のヘッダは実行時に API 側が優先されます。
 - TOKEN_DIR を指定すると、共通ヘッダに Authorization: Bearer ${ACCESS_TOKEN} を追加し、JMeter の実行中に API を呼び出すたびに、フォルダ直下の *.token のうち更新日時が最も新しいファイルの内容（前後の空白・改行・BOM を除く）を ${ACCESS_TOKEN} に設定します。トークンは JMX に書き込まず、実行時に読み込みます。
 - 新しい .token ファイルを置く・ファイルを書き換えると、実行中でも次の API 呼び出しから切り替わります（フォルダの確認は 1 秒に 1 回）。拡張子が .token 以外のファイルは使いません。生成時には、そのとき最新の .token ファイル（またはフォルダ・ファイルが無いことの警告）を表示します。
@@ -455,7 +466,7 @@ OpenAPI 定義から生成する場合だけ使う設定ファイルです。ini
 | [任意] クッキー管理 | HTTP Cookie Manager | 応答の Set-Cookie を保存し、以降のリクエストで送信。事前設定クッキーも送信 | クッキーが送信されない（セッションを使う API は失敗） |
 | [任意] 事前処理 | setUp Thread Group | テスト開始前に 1 回だけ実行する処理の入れ物 | 配下の処理（Excel 読込など）も削除される |
 | [任意] テスト開始処理 | JSR223 Sampler | 実行条件をログに出力し、集計値をリセット | 開始ログが出ない（動作には影響なし） |
-| [任意] Excelデータ読込 | JSR223 Sampler | Excel（.xlsx）をメモリに読み込む（Apache POI 不要） | Excel の値が変数に設定されない |
+| [任意] Excelデータ読込 | JSR223 Sampler | Excel（.xlsx）をメモリに読み込む（Apache POI 不要）。読み込めない場合は失敗として記録し、テストを停止する | Excel の値が変数に設定されない（「Excelデータ行取得」も無効化・削除する） |
 | [必須] メイン処理 | Thread Group | API を実行する。THREADS / RAMP_UP / LOOPS（/ DURATION）で制御 | 削除不可 |
 | [任意] 連番 | Counter | 反復ごとに連番を ${SEQ} に設定（全スレッドで一意） | ${SEQ} が未定義になる |
 | [任意] 乱数 | Random Variable | 反復ごとに乱数を ${RANDOM_NO} に設定 | ${RANDOM_NO} が未定義になる |
@@ -496,6 +507,8 @@ OpenAPI 定義から生成する場合だけ使う設定ファイルです。ini
 - 一時的に外す場合は、削除より「Disable」（右クリック → Disable、または Ctrl + T）が安全です。
 - 変数を設定している要素を削除すると、その変数を使っている箇所では ${変数名} という文字列がそのまま送信されます。上の「変数の流れ」を確認してから削除してください。
 - CSV データ読込は、ファイルが見つからないとスレッドがエラーで停止します。CSV を使わない場合は削除してください。
+- Excel データ読込は、ファイル・シート・データ行が無い場合や、計算結果の無い数式・エラー値のセルがある場合に、失敗として JTL・レポートに記録してテストを停止します（値の無い変数で API を呼び出さないため）。Excel を使わない場合は「Excelデータ読込」と「Excelデータ行取得」を無効化・削除するか、設定 excel_data を OFF にして生成してください。実行時だけ使わない場合は -JEXCEL_FILE=（空）を指定します。
+- アクセストークン読込は、ファイルの読み込みに失敗した場合（他のプロセスが書き込み中など）、前回読み込んだトークンを使い、次の API の呼び出しで読み直します。
 - 生成時に設定を OFF にすると、その要素は最初から生成されません（「4.入力項目_設定」参照）。
 
 ## 8.JMXの更新
@@ -526,7 +539,7 @@ generate に -u（PowerShell は -UpdateJmx）で生成済みの JMX を指定�
 | --dry-run | -DryRun | 更新箇所を表示するだけで、ファイルは書き換えない |
 
 - -i・-s・-c・--seed など入力に関するオプションは、JMX を生成するときと同じです。-o・-n は使いません（指定しても無視します）。--split とは同時に指定できません。
-- 更新前の JMX は「JMX名.jmx.日時.bak」に退避します。更新した後は、基準ファイル（JMX名.jmx.base.json）と Linux サーバでの実行コマンド（JMX名_linux_cmd.txt）も作り直します。
+- 更新前の JMX は「JMX名.jmx.日時.bak」に退避します（同じ秒に退避したファイルがある場合は「日時_2」のように連番を付けます）。更新後の JMX を書き終えてから置き換えるため、書き込みに失敗しても元の JMX は残ります。更新した後は、基準ファイル（JMX名.jmx.base.json）と Linux サーバでの実行コマンド（JMX名_linux_cmd.txt）も作り直します。
 - 違う箇所が無い場合は、JMX を書き換えません。
 
 ### 更新箇所の表示
@@ -563,7 +576,7 @@ generate に -u（PowerShell は -UpdateJmx）で生成済みの JMX を指定�
 - JMeter で並べ替えた要素の順番は、そのまま残します（順番の違いは更新しません）。
 - JMeter で保存し直した JMX（書式・属性の順番が変わったもの）も更新できます。改行コード（LF / CRLF）は元の JMX に合わせます。
 - 基準ファイルが無い場合（ファイルを削除した場合や、基準ファイルを作らない以前の版で生成した JMX）は、現在の JMX と今回の定義を直接比べ、違う箇所を定義の内容に更新します。JMeter で変更した値も定義の値に戻り、JMeter で削除した要素も追加し直すため（JMeter で追加した要素と、共通のスクリプトの変更は残します）、先に --dry-run / -DryRun で確認してください。1 回更新すると基準ファイルが作られ、次からは JMeter の変更を残す比較になります。
-- OpenAPI 定義の場合は、同じ API名の API の番号（APIxx）を引き継ぎ、追加された API には既存の番号の続きを付けます。基準ファイルがあれば、操作の定義（パラメータ・リクエストボディ・参照先のスキーマ）が変わっていない API は前回と同じテストデータを使います。乱数シードは前回の値（基準ファイル、無ければ JMX のコメントに書かれた値）を使います（--seed / -Seed で変更できます）。
+- OpenAPI 定義の場合は、同じ API名の API の番号（APIxx）を引き継ぎ、追加された API には既存の番号の続きを付けます。基準ファイルがあれば、操作の定義（パラメータ・リクエストボディ・参照先のスキーマ）が変わっていない API は前回と同じテストデータを使います。乱数シードは前回の値（基準ファイル、無ければ JMX のコメントに書かれた値）を使います（--seed / -Seed で変更できます）。v1.1.0 で OpenAPI 定義から作る行の形式（パス・クエリの style など）を変えたため、v1.0.0 の基準ファイルを使う最初の更新では、すべての API の行を前回と同じ乱数シードで作り直します（定義が同じならテストデータの値は同じで、変わった形式の箇所だけが [変更] になります）。
 
 ## 9.実行方法
 <!-- summary: GUI / CLI での実行方法、run コマンド、実行時に変更できるプロパティ -->
@@ -868,7 +881,10 @@ log.info('order id = ' + vars.get('ORDER_ID'))
 | `BindException: Address already in use` | クライアント側のポート枯渇 | KeepAlive を有効（既定）にする、スレッド数を減らす、OS のポート範囲を広げる |
 | `Too many open files`（RHEL） | ファイルディスクリプタの上限 | `ulimit -n` で上限を引き上げる |
 | HTML レポートが作成されない | JTL が空、出力先フォルダが空でない | jmeter.log を確認。`jmeter -g result.jtl -o 新しいフォルダ` で再作成 |
-| Excel のデータが読み込まれない | ファイルパス・シート名の誤り、.xls 形式 | jmeter.log の [Excel] の行を確認。.xlsx 形式で保存する（.xls は非対応） |
+| Excel のデータが読み込まれない・「Excelデータ読込」が失敗してテストが止まる | ファイルパス・シート名の誤り、.xls 形式、データ行が無い、計算結果の無い数式 | jmeter.log の [Excel] の行を確認。.xlsx 形式で保存する（.xls は非対応）。Excel を使わない場合は「Excelデータ読込」「Excelデータ行取得」を無効化する |
+| ヘッダに書いた Cookie が送信されない | クッキー管理（Cookie Manager）がクッキーを持っているとヘッダの Cookie を置き換える | クッキーは設定 cookies に記入するか、設定 cookie_manager を OFF にする |
+| `引用符（"）が閉じられていません`（generate） | CSV のセルの " の対応が取れていない | エラーの行を確認し、値を "..." で囲み、値の中の " は "" と書く |
+| `読み取れないセルがあります`（generate） | Excel のセルが計算結果の無い数式・エラー値 | Excel で開いて数式の結果を確認し、保存し直す |
 | `JSON の構文エラーです（YAML 形式は未対応です）`（generate） | OpenAPI 定義が YAML、または JSON の書式誤り | YAML は JSON に変換してから指定する。JSON はエラーメッセージの行・列を確認して修正 |
 | `Swagger 2.0 形式には対応していません`（generate） | Swagger 2.0（OpenAPI 2.0）の定義 | OpenAPI 3.0.x 形式に変換してから指定する |
 | `curl コマンドとして読めません`（add-curl） | 先頭が curl ではない、またはコマンドの貼り付け誤り | curl で始まるコマンドを指定する（ブラウザの「Copy as cURL」の内容をそのまま保存したファイルを --curl-file / -CurlFile で指定すると確実） |
@@ -885,7 +901,7 @@ log.info('order id = ' + vars.get('ORDER_ID'))
 |---|---|---|---|
 | init | `./jmeter_api_tool.sh init [-o フォルダ] [-f]` | `jmeter_api_tool.bat init [-OutDir フォルダ] [-Force]` | 入力テンプレートを作成（既定: input） |
 | generate | `./jmeter_api_tool.sh generate -i ファイル [-s 設定CSV] [-o フォルダ] [-n ファイル名] [--split] [-f] [-c OpenAPI用設定] [--seed N] [-u JMX [--dry-run]]` | `jmeter_api_tool.bat generate -i ファイル [-s 設定CSV] [-OutDir フォルダ] [-JmxName ファイル名] [-Split] [-Force] [-c OpenAPI用設定] [-Seed N] [-UpdateJmx JMX [-DryRun]]` | JMX を生成（既定: output）。OpenAPI 用のオプションは「6.OpenAPI定義から生成」、-u（既存の JMX の差分更新）は「8.JMXの更新」参照 |
-| add-curl | `./jmeter_api_tool.sh add-curl -i API一覧 (--curl-file ファイル / --curl "curl …" / -- curl …) [--name API名] [--dry-run]` | `jmeter_api_tool.bat add-curl -i API一覧 (-CurlFile ファイル / -Curl "curl …") [-ApiName API名] [-DryRun]` | curl コマンドを解析して API一覧に 1 行追加（「3.JMX生成」参照） |
+| add-curl | `./jmeter_api_tool.sh add-curl -i API一覧 (--curl-file ファイル / --curl "curl …" / -- curl …) [--name API名] [--dry-run]` | `jmeter_api_tool.bat add-curl -i API一覧 (-CurlFile ファイル / -Curl "curl …") [-ApiName API名] [-DryRun]` | curl コマンドを解析して API一覧に追加（1 コマンド = 1 行。複数のコマンドも可。「3.JMX生成」参照） |
 | linux-cmd | `./jmeter_api_tool.sh linux-cmd -t JMX [-o フォルダ]` | `jmeter_api_tool.bat linux-cmd -t JMX [-OutDir フォルダ]` | Linux サーバで実行するコマンドと説明を出力（「9.実行方法」参照） |
 | manual | `./jmeter_api_tool.sh manual [-o フォルダ]` | `jmeter_api_tool.bat manual [-OutDir フォルダ]` | 本書（xlsx / md）を出力（既定: docs） |
 | run | `./jmeter_api_tool.sh run -t JMX [オプション]` | `jmeter_api_tool.bat run -t JMX [オプション]` | CLI モードで実行（既定: result） |

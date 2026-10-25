@@ -2,7 +2,7 @@
 #  JMeter CLI の実行コマンド（Linux サーバ用）
 #    JMX          : api_test.jmx
 #    テストプラン : APIテスト
-#    作成         : jmeter_api_tool 1.0.0（2026-10-25 11:36:20）
+#    作成         : jmeter_api_tool 1.1.0（2026-10-25 17:19:28）
 ################################################################################
 このファイルは、JMX を Linux サーバに持ち込み、JMeter の CLI（非 GUI）モードで実行するためのコマンドと、
 各パラメータの説明です。-J で指定している値は JMX の既定値です。必要に応じて書き換えてから実行してください。
@@ -126,6 +126,7 @@ jmeter -n -t api_test.jmx -l "$RUN_DIR/result.jtl" -j "$RUN_DIR/jmeter.log" -e -
   grep -E ' (ERROR|WARN) ' "$RUN_DIR/jmeter.log" | tail -n 20     # エラー・警告の確認
   HTML レポート: "$RUN_DIR/report/index.html" をブラウザで開きます
   （手元に取得する例: scp -r ユーザー@サーバ:/opt/jmeter_test/result ./）
+  jmeter -g "$RUN_DIR/result.jtl" -o "$RUN_DIR/report_regen"      # HTML レポートだけを JTL から作り直す（出力先は新しいフォルダ）
 
 ================================================================================
 7. 実行中の停止

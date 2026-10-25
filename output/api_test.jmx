@@ -2,7 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="APIテスト" enabled="true">
-      <stringProp name="TestPlan.comments">jmeter_api_tool v1.0.0 で生成（2026-10-11 05:00:27 / 入力: api_definition.xlsx）
+      <stringProp name="TestPlan.comments">jmeter_api_tool v1.1.0 で生成（2026-10-25 17:19:28 / 入力: api_definition.xlsx）
 名前が [必須] の要素は削除しないでください。[任意] の要素は不要であれば削除できます（各要素のコメント参照）。
 実行時の変更例: -JTHREADS=10 -JLOOPS=100 -JHOST=example.com</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
@@ -140,7 +140,7 @@ if (oldWriter != null) {
     } catch (Exception ignored) {
     }
 }
-[&apos;API_RESULT_TOTAL&apos;, &apos;API_RESULT_OK&apos;, &apos;API_RESULT_NG&apos;].each { props.remove(it) }
+[&apos;API_RESULT_TOTAL&apos;, &apos;API_RESULT_OK&apos;, &apos;API_RESULT_NG&apos;, &apos;ACCESS_TOKEN_LATEST&apos;, &apos;ACCESS_TOKEN_CACHE&apos;].each { props.remove(it) }
 props.put(&apos;API_TEST_START_MS&apos;, String.valueOf(System.currentTimeMillis()))
 log.info(&apos;==== テスト開始: &apos; + (Parameters ?: &apos;&apos;))
 </stringProp>
@@ -149,7 +149,8 @@ log.info(&apos;==== テスト開始: &apos; + (Parameters ?: &apos;&apos;))
         <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="[任意] Excelデータ読込 (JSR223 Sampler)" enabled="true">
           <stringProp name="TestPlan.comments">[任意] Excel（.xlsx）を読み込みます（Apache POI 不要）。1 行目 = 変数名、2 行目以降 = データ。
 パラメータ: ファイルパス|シート名（-JEXCEL_FILE / -JEXCEL_SHEET で変更可。相対パスは JMX のフォルダ基準）。
-削除する場合は、メイン処理の「Excelデータ行取得」も削除してください。</stringProp>
+読み込めない場合（ファイル・データ行が無いなど）は失敗として記録し、テストを停止します。
+Excel のデータを使わない場合・削除する場合は、メイン処理の「Excelデータ行取得」も無効化・削除してください。</stringProp>
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters">${__P(EXCEL_FILE,data/testdata.xlsx)}|${__P(EXCEL_SHEET,)}</stringProp>
           <stringProp name="filename"></stringProp>
@@ -162,32 +163,45 @@ log.info(&apos;==== テスト開始: &apos; + (Parameters ?: &apos;&apos;))
 //  ・読み込んだデータは props &apos;EXCEL_DATA&apos; に保存され、メイン処理の
 //    「Excelデータ行取得」が反復ごとに1行ずつ変数に設定します。
 //  ・パラメータ欄: ファイルパス|シート名（シート名が空の場合は先頭シート）
-//    相対パスは JMX ファイルのフォルダが基準です。-JEXCEL_FILE / -JEXCEL_SHEET で変更できます。
+//    相対パスは JMX ファイルのフォルダが基準です（区切りは \ と / のどちらでも可）。
+//    -JEXCEL_FILE / -JEXCEL_SHEET で変更できます。ファイルパスを空にする（-JEXCEL_FILE=）と読み込みません。
 //  ・数値・日付はセルに保存されている値（表示書式の適用前）になります。
 //    表示どおりの値を使いたい列は、Excel 側でセルの書式を「文字列」にしてください。
+//  ・読み込めない場合（ファイル・シート・データ行が無い、計算結果の無い数式・エラー値のセルがあるなど）は、
+//    この処理を失敗として JTL・レポートに記録し、テストを停止します（値の無い変数で API を呼び出さないため）。
+//    Excel のデータを使わない場合は、この要素と「Excelデータ行取得」を無効化してください。
 // ============================================================
 import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
 import org.apache.jmeter.services.FileServer
 
-SampleResult.setIgnore()   // この処理はレポート・JTL に含めない
-
 String[] params = (Parameters ?: &apos;&apos;).split(&apos;\\|&apos;, -1)
 String path = params.length &gt; 0 ? params[0].trim() : &apos;&apos;
 String sheetName = params.length &gt; 1 ? params[1].trim() : &apos;&apos;
 props.remove(&apos;EXCEL_DATA&apos;)
 props.put(&apos;EXCEL_ROW_COUNTER&apos;, new AtomicLong(0))
+// 読み込めない場合: この処理を失敗として記録し、テストを停止する
+def fail = { String message, Throwable error = null -&gt;
+    log.error(message, error)
+    SampleResult.setSuccessful(false)
+    SampleResult.setResponseCode(&apos;500&apos;)
+    SampleResult.setResponseMessage(message)
+    ctx.getEngine().stopTest()
+}
 if (path.isEmpty()) {
-    log.warn(&apos;[Excel] ファイルパスが指定されていません&apos;)
+    SampleResult.setIgnore()
+    log.info(&apos;[Excel] ファイルパスが空のため読み込みません&apos;)
     return
 }
-File file = new File(path)
+// パスの解決: \ は / として扱い、相対パス（~/ で始まるものを含む）は JMX のフォルダ基準
+String normPath = path.replace(&apos;\\&apos;, &apos;/&apos;)
+File file = new File(normPath.startsWith(&apos;~/&apos;) ? normPath.substring(2) : normPath)
 if (!file.isAbsolute()) {
-    file = new File(FileServer.getFileServer().getBaseDir(), path)
+    file = new File(FileServer.getFileServer().getBaseDir(), file.getPath())
 }
 if (!file.isFile()) {
-    log.warn(&apos;[Excel] ファイルが見つかりません: &apos; + file.getAbsolutePath())
+    fail(&apos;[Excel] ファイルが見つかりません: &apos; + file.getAbsolutePath())
     return
 }
 
@@ -211,9 +225,13 @@ def children = { node, String name -&gt;
     }
     return list
 }
+// Excel の文字列の _xHHHH_（制御文字などのエスケープ。_x005F_ は _）を文字に戻す
+def unescape = { String s -&gt;
+    s.contains(&apos;_x&apos;) ? s.replaceAll(/_x([0-9A-Fa-f]{4})_/) { all, hex -&gt; String.valueOf((char) Integer.parseInt(hex, 16)) } : s
+}
 // &lt;t&gt; のテキストを連結する（ふりがな rPh は除外）
-def textOf
-textOf = { node -&gt;
+def rawTextOf
+rawTextOf = { node -&gt;
     StringBuilder sb = new StringBuilder()
     def nodes = node.getChildNodes()
     for (int i = 0; i &lt; nodes.getLength(); i++) {
@@ -221,10 +239,11 @@ textOf = { node -&gt;
         if (n.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE || n.getLocalName() == &apos;rPh&apos;) {
             continue
         }
-        sb.append(n.getLocalName() == &apos;t&apos; ? n.getTextContent() : textOf(n))
+        sb.append(n.getLocalName() == &apos;t&apos; ? n.getTextContent() : rawTextOf(n))
     }
     return sb.toString()
 }
+def textOf = { node -&gt; unescape(rawTextOf(node)) }
 // セル参照 &quot;AB12&quot; → 列番号（0 始まり）
 def columnIndex = { String ref -&gt;
     int n = 0
@@ -237,8 +256,9 @@ def columnIndex = { String ref -&gt;
     return n - 1
 }
 
-def zip = new ZipFile(file)
+def zip = null
 try {
+    zip = new ZipFile(file)
     def parse = { String entryName -&gt;
         def entry = zip.getEntry(entryName)
         if (entry == null) {
@@ -276,10 +296,15 @@ try {
         }
     }
     if (target == null) {
-        log.warn(&apos;[Excel] シートが見つかりません: &apos; + (sheetName ?: &apos;(先頭シート)&apos;) + &apos; / &apos; + file.getName())
+        fail(&apos;[Excel] シートが見つかりません: &apos; + (sheetName ?: &apos;(先頭シート)&apos;) + &apos; / &apos; + file.getName())
         return
     }
-    def sheetRoot = parse(target.startsWith(&apos;/&apos;) ? target.substring(1) : &apos;xl/&apos; + target)
+    // シートの XML（Target は xl/workbook.xml からの相対パス、または / から始まるパス）
+    String part = new URI(&apos;/xl/workbook.xml&apos;).resolve(target).normalize().getPath().substring(1)
+    def sheetRoot = parse(part)
+    if (sheetRoot == null) {
+        throw new IOException(&apos;シートの XML（&apos; + part + &apos;）がありません&apos;)
+    }
     def sheetData = children(sheetRoot, &apos;sheetData&apos;)
     // セルの読み取り
     List&lt;List&lt;String&gt;&gt; table = []
@@ -298,12 +323,21 @@ try {
             } else {
                 def v = children(c, &apos;v&apos;)
                 String raw = v ? v[0].getTextContent() : &apos;&apos;
+                if (!v &amp;&amp; children(c, &apos;f&apos;)) {
+                    throw new IOException(&apos;セル &apos; + ref + &apos; の数式に計算結果がありません（Excel で開いて保存し直してください）&apos;)
+                }
                 if (type == &apos;s&apos;) {
-                    value = raw ? shared[Integer.parseInt(raw.trim())] : &apos;&apos;
+                    int index = raw.trim().isInteger() ? raw.trim().toInteger() : -1
+                    if (index &lt; 0 || index &gt;= shared.size()) {
+                        throw new IOException(&apos;セル &apos; + ref + &apos; の共有文字列の参照（&apos; + raw.trim() + &apos;）が正しくありません&apos;)
+                    }
+                    value = shared[index]
                 } else if (type == &apos;b&apos;) {
                     value = raw.trim() == &apos;1&apos; ? &apos;TRUE&apos; : &apos;FALSE&apos;
+                } else if (type == &apos;e&apos;) {
+                    throw new IOException(&apos;セル &apos; + ref + &apos; がエラー値（&apos; + raw.trim() + &apos;）です&apos;)
                 } else {
-                    value = raw
+                    value = type == &apos;str&apos; ? unescape(raw) : raw
                 }
             }
             cells.put(col, value)
@@ -318,10 +352,14 @@ try {
         }
     }
     if (table.isEmpty()) {
-        log.warn(&apos;[Excel] データがありません: &apos; + file.getName() + &apos; / &apos; + foundName)
+        fail(&apos;[Excel] データがありません: &apos; + file.getName() + &apos; / &apos; + foundName)
         return
     }
     List&lt;String&gt; headers = table[0].collect { it.trim() }
+    def duplicated = headers.findAll { it }.countBy { it }.findAll { it.value &gt; 1 }.keySet()
+    if (duplicated) {
+        log.warn(&apos;[Excel] 列名が重複しています（右の列の値を使います）: &apos; + duplicated)
+    }
     List&lt;Map&lt;String, String&gt;&gt; rows = []
     for (int r = 1; r &lt; table.size(); r++) {
         Map&lt;String, String&gt; m = new LinkedHashMap&lt;&gt;()
@@ -332,13 +370,18 @@ try {
         }
         rows.add(m)
     }
+    if (rows.isEmpty()) {
+        fail(&apos;[Excel] データ行がありません（1 行目は列名です）: &apos; + file.getName() + &apos; / &apos; + foundName)
+        return
+    }
     props.put(&apos;EXCEL_DATA&apos;, Collections.unmodifiableList(rows))
+    SampleResult.setIgnore()   // 読み込めた場合は、この処理をレポート・JTL に含めない
     log.info(&apos;[Excel] 読込完了: &apos; + file.getAbsolutePath() + &apos; / シート=&apos; + foundName
             + &apos; / 列=&apos; + headers.findAll { it } + &apos; / データ=&apos; + rows.size() + &apos;行&apos;)
 } catch (Exception e) {
-    log.error(&apos;[Excel] 読込エラー: &apos; + file.getAbsolutePath(), e)
+    fail(&apos;[Excel] 読込エラー: &apos; + file.getAbsolutePath() + &apos; / &apos; + e.getMessage(), e)
 } finally {
-    zip.close()
+    zip?.close()
 }
 </stringProp>
         </JSR223Sampler>
@@ -947,7 +990,7 @@ Set-Cookie とリダイレクト追従の例（クッキー管理を使用）</s
 //  すべてのスレッドの終了後に1回だけ実行されます。
 //  ・合計 / 成功 / 失敗件数と経過時間を jmeter.log と結果ログに出力します。
 //    （件数は「結果ログ出力」が有効な場合のみ集計されます）
-//  ・結果ログファイルを閉じ、読み込んだ Excel データを解放します。
+//  ・結果ログファイルを閉じ、読み込んだ Excel データ・アクセストークンを解放します。
 // ============================================================
 SampleResult.setIgnore()   // この処理はレポート・JTL に含めない
 
@@ -966,8 +1009,7 @@ if (writer != null) {
         writer.close()
     }
 }
-props.remove(&apos;EXCEL_DATA&apos;)
-props.remove(&apos;EXCEL_ROW_COUNTER&apos;)
+[&apos;EXCEL_DATA&apos;, &apos;EXCEL_ROW_COUNTER&apos;, &apos;ACCESS_TOKEN_LATEST&apos;, &apos;ACCESS_TOKEN_CACHE&apos;].each { props.remove(it) }
 </stringProp>
         </JSR223Sampler>
         <hashTree/>
@@ -1200,7 +1242,8 @@ count(res.isSuccessful() ? &apos;API_RESULT_OK&apos; : &apos;API_RESULT_NG&apos;
 
 // 出力ファイル（最初の1件で作成し、全スレッドで共有）
 def writer = props.computeIfAbsent(&apos;API_RESULT_LOG_WRITER&apos;, { k -&gt;
-    File dir = dirText.startsWith(&apos;~/&apos;) ? new File(FileServer.getFileServer().getBaseDir(), dirText.substring(2)) : new File(dirText)
+    String normDir = dirText.replace(&apos;\\&apos;, &apos;/&apos;)
+    File dir = normDir.startsWith(&apos;~/&apos;) ? new File(FileServer.getFileServer().getBaseDir(), normDir.substring(2)) : new File(dirText)
     dir.mkdirs()
     File file = new File(dir, &apos;api_result.log&apos;)
     boolean isNew = !file.exists() || file.length() == 0

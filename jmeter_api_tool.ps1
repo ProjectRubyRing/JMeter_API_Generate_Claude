@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  jmeter_api_tool.ps1 v1.0.0 （Windows 11 用 / Windows PowerShell 5.1・PowerShell 7）
+  jmeter_api_tool.ps1 v1.1.0 （Windows 11 用 / Windows PowerShell 5.1・PowerShell 7）
 
 .DESCRIPTION
   REST API の定義（Excel / CSV / OpenAPI）から Apache JMeter 5.6.3 用の JMX を生成し、
@@ -48,7 +48,7 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
-$script:ToolVersion = '1.0.0'
+$script:ToolVersion = '1.1.0'
 $script:Warnings = New-Object System.Collections.Generic.List[string]
 try { Add-Type -AssemblyName System.IO.Compression } catch { }
 try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { }
@@ -58,7 +58,7 @@ $script:SpecJson = @'
 {
  "tool": {
   "name": "jmeter_api_tool",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "jmeter": "5.6.3"
  },
  "settings": [
@@ -670,21 +670,21 @@ $script:SpecJson = @'
    "key": "PROTOCOL",
    "label": "プロトコル",
    "default": "",
-   "desc": "共通変数 PROTOCOL の既定値（http / https）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JPROTOCOL=値 で変更できます"
+   "desc": "共通変数 PROTOCOL の既定値（http / https）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JPROTOCOL=値 で変更できます"
   },
   {
    "category": "接続先",
    "key": "HOST",
    "label": "ホスト名",
    "default": "",
-   "desc": "共通変数 HOST の既定値（例: api.example.com）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JHOST=値 で変更できます"
+   "desc": "共通変数 HOST の既定値（例: api.example.com）。空欄 = OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JHOST=値 で変更できます"
   },
   {
    "category": "接続先",
    "key": "PORT",
    "label": "ポート番号",
    "default": "",
-   "desc": "共通変数 PORT の既定値（1～65535）。空欄 = 未設定（ポート番号なし。http は 80 / https は 443 で接続）。PROTOCOL と HOST も空欄の場合は OpenAPI 定義（servers[0].url）または設定 base_url の値。実行時は -JPORT=値 で変更できます"
+   "desc": "共通変数 PORT の既定値（1～65535）。空欄 = 未設定（ポート番号なし。http は 80 / https は 443 で接続）。PROTOCOL と HOST も空欄の場合は OpenAPI 定義（servers[0].url）または設定 base_url の値。記入した値は operation / path の servers の接続先にも使います。実行時は -JPORT=値 で変更できます"
   },
   {
    "category": "HTTPヘッダ",
@@ -775,7 +775,7 @@ $script:SpecJson = @'
    "required": true,
    "width": 10,
    "hint": "GET / POST",
-   "desc": "HTTP メソッド（GET / POST。PUT / PATCH / DELETE も可）",
+   "desc": "HTTP メソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS / TRACE）",
    "example": "POST"
   },
   {
@@ -832,8 +832,8 @@ $script:SpecJson = @'
    ],
    "required": false,
    "width": 11,
-   "hint": "auto / json / form / raw",
-   "desc": "リクエストボディの形式。空欄 = auto（自動判定）",
+   "hint": "auto / json / form / raw / xml / multipart",
+   "desc": "リクエストボディの形式（auto / json / form / raw / xml / multipart）。空欄 = auto（自動判定）",
    "example": "json"
   },
   {
@@ -848,7 +848,7 @@ $script:SpecJson = @'
    "required": false,
    "width": 40,
    "hint": "JSON 等 / 名前=値",
-   "desc": "POST 等で送る本文。form 形式は「名前=値」を改行 / & 区切り",
+   "desc": "POST 等で送る本文（前後の空白・改行も含めてそのまま送信）。form / multipart 形式は「名前=値」を改行 / & 区切り",
    "example": "{\"userId\":\"${USER_ID}\"}"
   },
   {
@@ -1167,7 +1167,7 @@ $script:SpecJson = @'
   "result_log": "[任意] 結果ログ出力 (JSR223 Listener)"
  },
  "comments": {
-  "test_plan": "jmeter_api_tool v1.0.0 で生成（@@DATE@@ / 入力: @@INPUT@@）\n名前が [必須] の要素は削除しないでください。[任意] の要素は不要であれば削除できます（各要素のコメント参照）。\n実行時の変更例: -JTHREADS=10 -JLOOPS=100 -JHOST=example.com",
+  "test_plan": "jmeter_api_tool v@@VERSION@@ で生成（@@DATE@@ / 入力: @@INPUT@@）\n名前が [必須] の要素は削除しないでください。[任意] の要素は不要であれば削除できます（各要素のコメント参照）。\n実行時の変更例: -JTHREADS=10 -JLOOPS=100 -JHOST=example.com",
   "udv": "[必須] 接続先と共通変数。値は ${__P(名前,既定値)} 形式のため、実行時に -J名前=値 で変更できます。\n各 API（HTTP リクエスト）が ${PROTOCOL} ${HOST} ${PORT} を参照しているため削除しないでください。",
   "udv_protocol": "プロトコル（http / https）。-J@@VAR@@=値 で変更",
   "udv_host": "ホスト名。-J@@VAR@@=値 で変更",
@@ -1178,7 +1178,7 @@ $script:SpecJson = @'
   "cookie": "[任意] クッキーの自動管理（Set-Cookie を保存し、以降のリクエストで送信）。反復ごとにクリア = @@CLEAR@@。\nクッキーを使わない API だけの場合は削除できます。",
   "setup_tg": "[任意] テスト開始前に 1 回だけ実行されます。配下の処理が不要であれば、このスレッドグループごと削除できます。",
   "setup_start": "[任意] 実行条件（パラメータ欄）を jmeter.log に出力し、結果ログ用の集計値をリセットします。",
-  "excel_loader": "[任意] Excel（.xlsx）を読み込みます（Apache POI 不要）。1 行目 = 変数名、2 行目以降 = データ。\nパラメータ: ファイルパス|シート名（-JEXCEL_FILE / -JEXCEL_SHEET で変更可。相対パスは JMX のフォルダ基準）。\n削除する場合は、メイン処理の「Excelデータ行取得」も削除してください。",
+  "excel_loader": "[任意] Excel（.xlsx）を読み込みます（Apache POI 不要）。1 行目 = 変数名、2 行目以降 = データ。\nパラメータ: ファイルパス|シート名（-JEXCEL_FILE / -JEXCEL_SHEET で変更可。相対パスは JMX のフォルダ基準）。\n読み込めない場合（ファイル・データ行が無いなど）は失敗として記録し、テストを停止します。\nExcel のデータを使わない場合・削除する場合は、メイン処理の「Excelデータ行取得」も無効化・削除してください。",
   "main_tg": "[必須] API を実行するスレッドグループ。\nスレッド数 = -JTHREADS / ランプアップ秒 = -JRAMP_UP / ループ回数 = -JLOOPS（-1 = 無限）@@DURATION@@",
   "main_tg_duration": " / 実行時間（秒）= -JDURATION",
   "counter": "[任意] 反復（ループ）ごとに連番を ${@@NAME@@} に設定します（@@SCOPE@@）。",
@@ -1213,14 +1213,14 @@ $script:SpecJson = @'
   "result_log": "[任意] 1 リクエスト 1 行の結果ログ（api_result.log）を出力します。パラメータ: 出力フォルダ|本文出力(none/error/all)|最大文字数。\n大量実行時はファイル書き込みが負荷になるため、削除・無効化を推奨します。"
  },
  "scripts": {
-  "excel_loader": "// ============================================================\n// [任意] Excelデータ読込（setUp Thread Group / JSR223 Sampler）\n//  テスト開始前に1回だけ実行され、Excel(.xlsx)の内容をメモリに読み込みます。\n//  ・Apache POI などの追加ライブラリは不要です（xlsx を ZIP + XML として直接解析）。\n//  ・1行目 = 列名（そのまま変数名になります）、2行目以降 = データ。空行は無視します。\n//  ・読み込んだデータは props 'EXCEL_DATA' に保存され、メイン処理の\n//    「Excelデータ行取得」が反復ごとに1行ずつ変数に設定します。\n//  ・パラメータ欄: ファイルパス|シート名（シート名が空の場合は先頭シート）\n//    相対パスは JMX ファイルのフォルダが基準です。-JEXCEL_FILE / -JEXCEL_SHEET で変更できます。\n//  ・数値・日付はセルに保存されている値（表示書式の適用前）になります。\n//    表示どおりの値を使いたい列は、Excel 側でセルの書式を「文字列」にしてください。\n// ============================================================\nimport java.util.concurrent.atomic.AtomicLong\nimport java.util.zip.ZipFile\nimport javax.xml.parsers.DocumentBuilderFactory\nimport org.apache.jmeter.services.FileServer\n\nSampleResult.setIgnore()   // この処理はレポート・JTL に含めない\n\nString[] params = (Parameters ?: '').split('\\\\|', -1)\nString path = params.length > 0 ? params[0].trim() : ''\nString sheetName = params.length > 1 ? params[1].trim() : ''\nprops.remove('EXCEL_DATA')\nprops.put('EXCEL_ROW_COUNTER', new AtomicLong(0))\nif (path.isEmpty()) {\n    log.warn('[Excel] ファイルパスが指定されていません')\n    return\n}\nFile file = new File(path)\nif (!file.isAbsolute()) {\n    file = new File(FileServer.getFileServer().getBaseDir(), path)\n}\nif (!file.isFile()) {\n    log.warn('[Excel] ファイルが見つかりません: ' + file.getAbsolutePath())\n    return\n}\n\ndef factory = DocumentBuilderFactory.newInstance()\nfactory.setNamespaceAware(true)\nfactory.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)\ndef builder = factory.newDocumentBuilder()\n\n// 子要素をローカル名で取得する\ndef children = { node, String name ->\n    def list = []\n    if (node == null) {\n        return list\n    }\n    def nodes = node.getChildNodes()\n    for (int i = 0; i < nodes.getLength(); i++) {\n        def n = nodes.item(i)\n        if (n.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE && n.getLocalName() == name) {\n            list.add(n)\n        }\n    }\n    return list\n}\n// <t> のテキストを連結する（ふりがな rPh は除外）\ndef textOf\ntextOf = { node ->\n    StringBuilder sb = new StringBuilder()\n    def nodes = node.getChildNodes()\n    for (int i = 0; i < nodes.getLength(); i++) {\n        def n = nodes.item(i)\n        if (n.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE || n.getLocalName() == 'rPh') {\n            continue\n        }\n        sb.append(n.getLocalName() == 't' ? n.getTextContent() : textOf(n))\n    }\n    return sb.toString()\n}\n// セル参照 \"AB12\" → 列番号（0 始まり）\ndef columnIndex = { String ref ->\n    int n = 0\n    for (char ch : ref.toCharArray()) {\n        if (!Character.isLetter(ch)) {\n            break\n        }\n        n = n * 26 + (Character.toUpperCase(ch) - ('A' as char) + 1)\n    }\n    return n - 1\n}\n\ndef zip = new ZipFile(file)\ntry {\n    def parse = { String entryName ->\n        def entry = zip.getEntry(entryName)\n        if (entry == null) {\n            return null\n        }\n        def input = zip.getInputStream(entry)\n        try {\n            return builder.parse(input).getDocumentElement()\n        } finally {\n            input.close()\n        }\n    }\n    // 共有文字列\n    List<String> shared = []\n    children(parse('xl/sharedStrings.xml'), 'si').each { shared.add(textOf(it)) }\n    // シートの特定（workbook.xml → workbook.xml.rels）\n    Map<String, String> rels = [:]\n    children(parse('xl/_rels/workbook.xml.rels'), 'Relationship').each {\n        rels.put(it.getAttribute('Id'), it.getAttribute('Target'))\n    }\n    String target = null\n    String foundName = null\n    def sheetsNode = children(parse('xl/workbook.xml'), 'sheets')\n    for (def sheet : children(sheetsNode ? sheetsNode[0] : null, 'sheet')) {\n        if (sheetName.isEmpty() || sheet.getAttribute('name') == sheetName) {\n            def attrs = sheet.getAttributes()\n            for (int i = 0; i < attrs.getLength(); i++) {\n                def a = attrs.item(i)\n                if (a.getLocalName() == 'id' && a.getNamespaceURI() != null) {\n                    target = rels.get(a.getNodeValue())\n                }\n            }\n            foundName = sheet.getAttribute('name')\n            break\n        }\n    }\n    if (target == null) {\n        log.warn('[Excel] シートが見つかりません: ' + (sheetName ?: '(先頭シート)') + ' / ' + file.getName())\n        return\n    }\n    def sheetRoot = parse(target.startsWith('/') ? target.substring(1) : 'xl/' + target)\n    def sheetData = children(sheetRoot, 'sheetData')\n    // セルの読み取り\n    List<List<String>> table = []\n    for (def row : children(sheetData ? sheetData[0] : null, 'row')) {\n        Map<Integer, String> cells = [:]\n        int next = 0\n        for (def c : children(row, 'c')) {\n            String ref = c.getAttribute('r')\n            int col = ref ? columnIndex(ref) : next\n            next = col + 1\n            String type = c.getAttribute('t')\n            String value = ''\n            if (type == 'inlineStr') {\n                def inline = children(c, 'is')\n                value = inline ? textOf(inline[0]) : ''\n            } else {\n                def v = children(c, 'v')\n                String raw = v ? v[0].getTextContent() : ''\n                if (type == 's') {\n                    value = raw ? shared[Integer.parseInt(raw.trim())] : ''\n                } else if (type == 'b') {\n                    value = raw.trim() == '1' ? 'TRUE' : 'FALSE'\n                } else {\n                    value = raw\n                }\n            }\n            cells.put(col, value)\n        }\n        int size = cells.isEmpty() ? 0 : cells.keySet().max() + 1\n        List<String> values = []\n        for (int i = 0; i < size; i++) {\n            values.add(cells.containsKey(i) ? cells.get(i) : '')\n        }\n        if (values.any { it.trim() }) {\n            table.add(values)\n        }\n    }\n    if (table.isEmpty()) {\n        log.warn('[Excel] データがありません: ' + file.getName() + ' / ' + foundName)\n        return\n    }\n    List<String> headers = table[0].collect { it.trim() }\n    List<Map<String, String>> rows = []\n    for (int r = 1; r < table.size(); r++) {\n        Map<String, String> m = new LinkedHashMap<>()\n        for (int i = 0; i < headers.size(); i++) {\n            if (headers[i]) {\n                m.put(headers[i], i < table[r].size() ? table[r][i] : '')\n            }\n        }\n        rows.add(m)\n    }\n    props.put('EXCEL_DATA', Collections.unmodifiableList(rows))\n    log.info('[Excel] 読込完了: ' + file.getAbsolutePath() + ' / シート=' + foundName\n            + ' / 列=' + headers.findAll { it } + ' / データ=' + rows.size() + '行')\n} catch (Exception e) {\n    log.error('[Excel] 読込エラー: ' + file.getAbsolutePath(), e)\n} finally {\n    zip.close()\n}\n",
+  "excel_loader": "// ============================================================\n// [任意] Excelデータ読込（setUp Thread Group / JSR223 Sampler）\n//  テスト開始前に1回だけ実行され、Excel(.xlsx)の内容をメモリに読み込みます。\n//  ・Apache POI などの追加ライブラリは不要です（xlsx を ZIP + XML として直接解析）。\n//  ・1行目 = 列名（そのまま変数名になります）、2行目以降 = データ。空行は無視します。\n//  ・読み込んだデータは props 'EXCEL_DATA' に保存され、メイン処理の\n//    「Excelデータ行取得」が反復ごとに1行ずつ変数に設定します。\n//  ・パラメータ欄: ファイルパス|シート名（シート名が空の場合は先頭シート）\n//    相対パスは JMX ファイルのフォルダが基準です（区切りは \\ と / のどちらでも可）。\n//    -JEXCEL_FILE / -JEXCEL_SHEET で変更できます。ファイルパスを空にする（-JEXCEL_FILE=）と読み込みません。\n//  ・数値・日付はセルに保存されている値（表示書式の適用前）になります。\n//    表示どおりの値を使いたい列は、Excel 側でセルの書式を「文字列」にしてください。\n//  ・読み込めない場合（ファイル・シート・データ行が無い、計算結果の無い数式・エラー値のセルがあるなど）は、\n//    この処理を失敗として JTL・レポートに記録し、テストを停止します（値の無い変数で API を呼び出さないため）。\n//    Excel のデータを使わない場合は、この要素と「Excelデータ行取得」を無効化してください。\n// ============================================================\nimport java.util.concurrent.atomic.AtomicLong\nimport java.util.zip.ZipFile\nimport javax.xml.parsers.DocumentBuilderFactory\nimport org.apache.jmeter.services.FileServer\n\nString[] params = (Parameters ?: '').split('\\\\|', -1)\nString path = params.length > 0 ? params[0].trim() : ''\nString sheetName = params.length > 1 ? params[1].trim() : ''\nprops.remove('EXCEL_DATA')\nprops.put('EXCEL_ROW_COUNTER', new AtomicLong(0))\n// 読み込めない場合: この処理を失敗として記録し、テストを停止する\ndef fail = { String message, Throwable error = null ->\n    log.error(message, error)\n    SampleResult.setSuccessful(false)\n    SampleResult.setResponseCode('500')\n    SampleResult.setResponseMessage(message)\n    ctx.getEngine().stopTest()\n}\nif (path.isEmpty()) {\n    SampleResult.setIgnore()\n    log.info('[Excel] ファイルパスが空のため読み込みません')\n    return\n}\n// パスの解決: \\ は / として扱い、相対パス（~/ で始まるものを含む）は JMX のフォルダ基準\nString normPath = path.replace('\\\\', '/')\nFile file = new File(normPath.startsWith('~/') ? normPath.substring(2) : normPath)\nif (!file.isAbsolute()) {\n    file = new File(FileServer.getFileServer().getBaseDir(), file.getPath())\n}\nif (!file.isFile()) {\n    fail('[Excel] ファイルが見つかりません: ' + file.getAbsolutePath())\n    return\n}\n\ndef factory = DocumentBuilderFactory.newInstance()\nfactory.setNamespaceAware(true)\nfactory.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)\ndef builder = factory.newDocumentBuilder()\n\n// 子要素をローカル名で取得する\ndef children = { node, String name ->\n    def list = []\n    if (node == null) {\n        return list\n    }\n    def nodes = node.getChildNodes()\n    for (int i = 0; i < nodes.getLength(); i++) {\n        def n = nodes.item(i)\n        if (n.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE && n.getLocalName() == name) {\n            list.add(n)\n        }\n    }\n    return list\n}\n// Excel の文字列の _xHHHH_（制御文字などのエスケープ。_x005F_ は _）を文字に戻す\ndef unescape = { String s ->\n    s.contains('_x') ? s.replaceAll(/_x([0-9A-Fa-f]{4})_/) { all, hex -> String.valueOf((char) Integer.parseInt(hex, 16)) } : s\n}\n// <t> のテキストを連結する（ふりがな rPh は除外）\ndef rawTextOf\nrawTextOf = { node ->\n    StringBuilder sb = new StringBuilder()\n    def nodes = node.getChildNodes()\n    for (int i = 0; i < nodes.getLength(); i++) {\n        def n = nodes.item(i)\n        if (n.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE || n.getLocalName() == 'rPh') {\n            continue\n        }\n        sb.append(n.getLocalName() == 't' ? n.getTextContent() : rawTextOf(n))\n    }\n    return sb.toString()\n}\ndef textOf = { node -> unescape(rawTextOf(node)) }\n// セル参照 \"AB12\" → 列番号（0 始まり）\ndef columnIndex = { String ref ->\n    int n = 0\n    for (char ch : ref.toCharArray()) {\n        if (!Character.isLetter(ch)) {\n            break\n        }\n        n = n * 26 + (Character.toUpperCase(ch) - ('A' as char) + 1)\n    }\n    return n - 1\n}\n\ndef zip = null\ntry {\n    zip = new ZipFile(file)\n    def parse = { String entryName ->\n        def entry = zip.getEntry(entryName)\n        if (entry == null) {\n            return null\n        }\n        def input = zip.getInputStream(entry)\n        try {\n            return builder.parse(input).getDocumentElement()\n        } finally {\n            input.close()\n        }\n    }\n    // 共有文字列\n    List<String> shared = []\n    children(parse('xl/sharedStrings.xml'), 'si').each { shared.add(textOf(it)) }\n    // シートの特定（workbook.xml → workbook.xml.rels）\n    Map<String, String> rels = [:]\n    children(parse('xl/_rels/workbook.xml.rels'), 'Relationship').each {\n        rels.put(it.getAttribute('Id'), it.getAttribute('Target'))\n    }\n    String target = null\n    String foundName = null\n    def sheetsNode = children(parse('xl/workbook.xml'), 'sheets')\n    for (def sheet : children(sheetsNode ? sheetsNode[0] : null, 'sheet')) {\n        if (sheetName.isEmpty() || sheet.getAttribute('name') == sheetName) {\n            def attrs = sheet.getAttributes()\n            for (int i = 0; i < attrs.getLength(); i++) {\n                def a = attrs.item(i)\n                if (a.getLocalName() == 'id' && a.getNamespaceURI() != null) {\n                    target = rels.get(a.getNodeValue())\n                }\n            }\n            foundName = sheet.getAttribute('name')\n            break\n        }\n    }\n    if (target == null) {\n        fail('[Excel] シートが見つかりません: ' + (sheetName ?: '(先頭シート)') + ' / ' + file.getName())\n        return\n    }\n    // シートの XML（Target は xl/workbook.xml からの相対パス、または / から始まるパス）\n    String part = new URI('/xl/workbook.xml').resolve(target).normalize().getPath().substring(1)\n    def sheetRoot = parse(part)\n    if (sheetRoot == null) {\n        throw new IOException('シートの XML（' + part + '）がありません')\n    }\n    def sheetData = children(sheetRoot, 'sheetData')\n    // セルの読み取り\n    List<List<String>> table = []\n    for (def row : children(sheetData ? sheetData[0] : null, 'row')) {\n        Map<Integer, String> cells = [:]\n        int next = 0\n        for (def c : children(row, 'c')) {\n            String ref = c.getAttribute('r')\n            int col = ref ? columnIndex(ref) : next\n            next = col + 1\n            String type = c.getAttribute('t')\n            String value = ''\n            if (type == 'inlineStr') {\n                def inline = children(c, 'is')\n                value = inline ? textOf(inline[0]) : ''\n            } else {\n                def v = children(c, 'v')\n                String raw = v ? v[0].getTextContent() : ''\n                if (!v && children(c, 'f')) {\n                    throw new IOException('セル ' + ref + ' の数式に計算結果がありません（Excel で開いて保存し直してください）')\n                }\n                if (type == 's') {\n                    int index = raw.trim().isInteger() ? raw.trim().toInteger() : -1\n                    if (index < 0 || index >= shared.size()) {\n                        throw new IOException('セル ' + ref + ' の共有文字列の参照（' + raw.trim() + '）が正しくありません')\n                    }\n                    value = shared[index]\n                } else if (type == 'b') {\n                    value = raw.trim() == '1' ? 'TRUE' : 'FALSE'\n                } else if (type == 'e') {\n                    throw new IOException('セル ' + ref + ' がエラー値（' + raw.trim() + '）です')\n                } else {\n                    value = type == 'str' ? unescape(raw) : raw\n                }\n            }\n            cells.put(col, value)\n        }\n        int size = cells.isEmpty() ? 0 : cells.keySet().max() + 1\n        List<String> values = []\n        for (int i = 0; i < size; i++) {\n            values.add(cells.containsKey(i) ? cells.get(i) : '')\n        }\n        if (values.any { it.trim() }) {\n            table.add(values)\n        }\n    }\n    if (table.isEmpty()) {\n        fail('[Excel] データがありません: ' + file.getName() + ' / ' + foundName)\n        return\n    }\n    List<String> headers = table[0].collect { it.trim() }\n    def duplicated = headers.findAll { it }.countBy { it }.findAll { it.value > 1 }.keySet()\n    if (duplicated) {\n        log.warn('[Excel] 列名が重複しています（右の列の値を使います）: ' + duplicated)\n    }\n    List<Map<String, String>> rows = []\n    for (int r = 1; r < table.size(); r++) {\n        Map<String, String> m = new LinkedHashMap<>()\n        for (int i = 0; i < headers.size(); i++) {\n            if (headers[i]) {\n                m.put(headers[i], i < table[r].size() ? table[r][i] : '')\n            }\n        }\n        rows.add(m)\n    }\n    if (rows.isEmpty()) {\n        fail('[Excel] データ行がありません（1 行目は列名です）: ' + file.getName() + ' / ' + foundName)\n        return\n    }\n    props.put('EXCEL_DATA', Collections.unmodifiableList(rows))\n    SampleResult.setIgnore()   // 読み込めた場合は、この処理をレポート・JTL に含めない\n    log.info('[Excel] 読込完了: ' + file.getAbsolutePath() + ' / シート=' + foundName\n            + ' / 列=' + headers.findAll { it } + ' / データ=' + rows.size() + '行')\n} catch (Exception e) {\n    fail('[Excel] 読込エラー: ' + file.getAbsolutePath() + ' / ' + e.getMessage(), e)\n} finally {\n    zip?.close()\n}\n",
   "excel_row": "// ============================================================\n// [任意] Excelデータ行取得（JSR223 PreProcessor）\n//  「Excelデータ読込」（setUp）で読み込んだデータから、反復（ループ）ごとに\n//  次の1行を取り出し、1行目の列名を変数名として設定します。\n//    例: 列名 ITEM_CODE → 変数 ITEM_CODE、使用中の行番号 → 変数 EXCEL_ROW_NO\n//  ・全スレッドで共有し、上から順に払い出します。最終行の次は先頭に戻ります。\n//  ・同じ反復内の2つ目以降の API では同じ行の値を使います。\n// ============================================================\ndef rows = props.get('EXCEL_DATA')\nif (rows == null || rows.isEmpty()) {\n    return\n}\nString iteration = String.valueOf(vars.getIteration())\nif (iteration == vars.get('EXCEL_ROW_ITERATION')) {\n    return\n}\nvars.put('EXCEL_ROW_ITERATION', iteration)\ndef counter = props.get('EXCEL_ROW_COUNTER')\nlong n = counter != null ? counter.getAndIncrement() : 0L\nint index = (int) (n % rows.size())\nrows.get(index).each { k, v -> vars.put(k, v) }\nvars.put('EXCEL_ROW_NO', String.valueOf(index + 1))\n",
-  "access_token": "// ============================================================\n// [任意] アクセストークン読込（JSR223 PreProcessor）\n//  メイン処理内のすべての API の呼び出し直前に毎回実行されます。\n//  指定したフォルダ配下のファイルからアクセストークンを読み込み、変数 ACCESS_TOKEN に設定します。\n//  共通ヘッダ（HTTP Header Manager）の Authorization（Bearer + 変数 ACCESS_TOKEN）で送信されます。\n//  ・パラメータ欄: フォルダ|ファイル名\n//    相対パスは JMX ファイルのフォルダ基準です。-JACCESS_TOKEN_DIR / -JACCESS_TOKEN_FILE で変更できます。\n//    区切りは \\ と / のどちらでもかまいません（Windows / Linux 共通）。フォルダを ; で区切って複数書くと、\n//    最初に存在するフォルダを使います（例: C:\\tokens;/opt/tokens）。\n//  ・ファイル名に * ? を含む場合（例: *.token）は、一致するファイルのうち更新日時が最も新しいファイルを使います\n//    （フォルダの確認は 1 秒に 1 回。新しいファイルを置くと自動で切り替わります）。\n//  ・ファイルの内容の前後の空白・改行（BOM）は除きます。\n//  ・ファイルの更新日時・サイズが変わったときだけ読み直します（実行中にトークンを差し替えできます）。\n// ============================================================\nimport java.nio.file.FileSystems\nimport org.apache.jmeter.services.FileServer\n\nString[] params = (Parameters ?: '').split('\\\\|', -1)\nString dir = params.length > 0 ? params[0].trim() : ''\nString name = params.length > 1 ? params[1].trim().replace('\\\\', '/') : ''\n// パスの解決: \\ は / として扱い、相対パス（~/ で始まるものを含む）は JMX のフォルダ基準\ndef resolve = { String path ->\n    String p = path.trim().replace('\\\\', '/')\n    File f = new File(p.startsWith('~/') ? p.substring(2) : p)\n    return f.isAbsolute() ? f : new File(FileServer.getFileServer().getBaseDir(), f.getPath())\n}\n// フォルダを ; で区切って複数書いた場合は、最初に存在するフォルダを使う\nList<File> dirs = dir.split(';').toList().findAll { it.trim() }.collect { resolve(it) }\nFile folder = dirs.find { it.isDirectory() } ?: (dirs ? dirs[0] : null)\nFile file = folder == null ? resolve(name) : new File(folder, name)\n// ファイル名に * ? がある場合: 一致するファイルのうち更新日時が最も新しいもの（同時刻は名前が後のもの）。\n// フォルダの確認は全スレッドで共有し、1 秒に 1 回だけ行う\nif (name.contains('*') || name.contains('?')) {\n    def latest = props.get('ACCESS_TOKEN_LATEST')\n    long now = System.currentTimeMillis()\n    if (latest == null || latest[0] != file.getPath() || now - latest[1] >= 1000) {\n        def matcher = FileSystems.getDefault().getPathMatcher('glob:' + file.getName())\n        File found = null\n        for (File f : (file.getParentFile()?.listFiles() ?: new File[0])) {\n            if (f.isFile() && matcher.matches(f.toPath().getFileName()) && (found == null || f.lastModified() > found.lastModified()\n                    || (f.lastModified() == found.lastModified() && f.getName() > found.getName()))) {\n                found = f\n            }\n        }\n        latest = [file.getPath(), now, found ?: file]\n        props.put('ACCESS_TOKEN_LATEST', latest)\n    }\n    file = latest[2]\n}\n// 読み込んだトークンは全スレッドで共有し、ファイルが変わったときだけ読み直す\nString stamp = file.getAbsolutePath() + '|' + file.lastModified() + '|' + file.length()\ndef cache = props.get('ACCESS_TOKEN_CACHE')\nif (cache == null || cache[0] != stamp) {\n    String token = ''\n    if (file.isFile()) {\n        token = file.getText('UTF-8').replace('﻿', '').trim()\n        if (token.isEmpty()) {\n            log.warn('[AccessToken] ファイルが空です: ' + file.getAbsolutePath())\n        } else {\n            log.info('[AccessToken] 読み込みました: ' + file.getAbsolutePath())\n        }\n    } else {\n        log.warn('[AccessToken] ファイルが見つかりません: ' + file.getAbsolutePath())\n    }\n    cache = [stamp, token]\n    props.put('ACCESS_TOKEN_CACHE', cache)\n}\nvars.put('ACCESS_TOKEN', cache[1])",
+  "access_token": "// ============================================================\n// [任意] アクセストークン読込（JSR223 PreProcessor）\n//  メイン処理内のすべての API の呼び出し直前に毎回実行されます。\n//  指定したフォルダ配下のファイルからアクセストークンを読み込み、変数 ACCESS_TOKEN に設定します。\n//  共通ヘッダ（HTTP Header Manager）の Authorization（Bearer + 変数 ACCESS_TOKEN）で送信されます。\n//  ・パラメータ欄: フォルダ|ファイル名\n//    相対パスは JMX ファイルのフォルダ基準です。-JACCESS_TOKEN_DIR / -JACCESS_TOKEN_FILE で変更できます。\n//    区切りは \\ と / のどちらでもかまいません（Windows / Linux 共通）。フォルダを ; で区切って複数書くと、\n//    最初に存在するフォルダを使います（例: C:\\tokens;/opt/tokens）。\n//  ・ファイル名に * ? を含む場合（例: *.token）は、一致するファイルのうち更新日時が最も新しいファイルを使います\n//    （フォルダの確認は 1 秒に 1 回。新しいファイルを置くと自動で切り替わります）。\n//  ・ファイルの内容の前後の空白・改行（BOM）は除きます。\n//  ・ファイルの更新日時・サイズが変わったときだけ読み直します（実行中にトークンを差し替えできます）。\n//  ・読み込みに失敗した場合（他のプロセスが書き込み中など）は、前回読み込んだトークンを使い、次の API で読み直します。\n// ============================================================\nimport java.nio.file.FileSystems\nimport org.apache.jmeter.services.FileServer\n\nString[] params = (Parameters ?: '').split('\\\\|', -1)\nString dir = params.length > 0 ? params[0].trim() : ''\nString name = params.length > 1 ? params[1].trim().replace('\\\\', '/') : ''\n// パスの解決: \\ は / として扱い、相対パス（~/ で始まるものを含む）は JMX のフォルダ基準\ndef resolve = { String path ->\n    String p = path.trim().replace('\\\\', '/')\n    File f = new File(p.startsWith('~/') ? p.substring(2) : p)\n    return f.isAbsolute() ? f : new File(FileServer.getFileServer().getBaseDir(), f.getPath())\n}\n// フォルダを ; で区切って複数書いた場合は、最初に存在するフォルダを使う\nList<File> dirs = dir.split(';').toList().findAll { it.trim() }.collect { resolve(it) }\nFile folder = dirs.find { it.isDirectory() } ?: (dirs ? dirs[0] : null)\nFile file = folder == null ? resolve(name) : new File(folder, name)\n// ファイル名に * ? がある場合: 一致するファイルのうち更新日時が最も新しいもの（同時刻は名前が後のもの）。\n// フォルダの確認は全スレッドで共有し、1 秒に 1 回だけ行う\nif (name.contains('*') || name.contains('?')) {\n    def latest = props.get('ACCESS_TOKEN_LATEST')\n    long now = System.currentTimeMillis()\n    if (latest == null || latest[0] != file.getPath() || now - latest[1] >= 1000) {\n        def matcher = FileSystems.getDefault().getPathMatcher('glob:' + file.getName())\n        File found = null\n        for (File f : (file.getParentFile()?.listFiles() ?: new File[0])) {\n            if (f.isFile() && matcher.matches(f.toPath().getFileName()) && (found == null || f.lastModified() > found.lastModified()\n                    || (f.lastModified() == found.lastModified() && f.getName() > found.getName()))) {\n                found = f\n            }\n        }\n        latest = [file.getPath(), now, found ?: file]\n        props.put('ACCESS_TOKEN_LATEST', latest)\n    }\n    file = latest[2]\n}\n// 読み込んだトークンは全スレッドで共有し、ファイルが変わったときだけ読み直す\nString stamp = file.getAbsolutePath() + '|' + file.lastModified() + '|' + file.length()\ndef cache = props.get('ACCESS_TOKEN_CACHE')\nif (cache == null || cache[0] != stamp) {\n    try {\n        String token = ''\n        if (file.isFile()) {\n            token = file.getText('UTF-8').replace('﻿', '').trim()\n            if (token.isEmpty()) {\n                log.warn('[AccessToken] ファイルが空です: ' + file.getAbsolutePath())\n            } else {\n                log.info('[AccessToken] 読み込みました: ' + file.getAbsolutePath())\n            }\n        } else {\n            log.warn('[AccessToken] ファイルが見つかりません: ' + file.getAbsolutePath())\n        }\n        cache = [stamp, token]\n        props.put('ACCESS_TOKEN_CACHE', cache)\n    } catch (Exception e) {\n        log.warn('[AccessToken] 読み込みに失敗しました（前回のトークンを使い、次の API で読み直します）: ' + file.getAbsolutePath() + ' / ' + e)\n    }\n}\nvars.put('ACCESS_TOKEN', cache != null ? cache[1] : '')",
   "common_pre": "// ============================================================\n// [任意] 共通前処理（JSR223 PreProcessor）\n//  メイン処理内のすべての API の呼び出し直前に毎回実行されます。\n//  API 呼び出し前にパラメータを生成・加工する処理をここに書きます。\n//  ※ JSR223 内では JMeter の変数参照（ドル記号＋波括弧）は使わず、\n//     vars.get('変数名') / vars.put('変数名', 値) を使います。\n// ============================================================\nimport java.time.ZonedDateTime\nimport java.time.format.DateTimeFormatter\n\n// リクエストごとの一意な ID とタイムスタンプ → 変数 REQUEST_ID / TIMESTAMP / EPOCH_MS\nvars.put('REQUEST_ID', UUID.randomUUID().toString())\nvars.put('TIMESTAMP', ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))\nvars.put('EPOCH_MS', String.valueOf(System.currentTimeMillis()))\n\n// 加工の例（必要に応じてコメントを外して使用）\n// String userId = vars.get('USER_ID') ?: ''\n// vars.put('USER_ID_UPPER', userId.toUpperCase())\n// vars.put('TODAY', new Date().format('yyyyMMdd'))\n",
   "common_post": "// ============================================================\n// [任意] 共通後処理（JSR223 PostProcessor）\n//  メイン処理内のすべての API の呼び出し直後に毎回実行されます。\n//  応答からパラメータを取得し、次の API で使う変数に設定する処理をここに書きます。\n//  prev = 直前の API の実行結果（SampleResult）\n//  ※ 検証（Assertion）より前に実行されるため、prev.isSuccessful() は HTTP レベルの成否です。\n// ============================================================\nvars.put('LAST_STATUS', prev.getResponseCode())\nvars.put('LAST_ELAPSED_MS', String.valueOf(prev.getTime()))\n\n// 応答 JSON から値を取り出す例（必要に応じてコメントを外して使用）\n// if ((prev.getContentType() ?: '').contains('json')) {\n//     def json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())\n//     vars.put('RESULT_CODE', String.valueOf(json?.resultCode))\n// }\n// 応答ヘッダから値を取り出す例\n// def m = prev.getResponseHeaders() =~ /(?im)^X-Request-Id:\\s*(.+)$/\n// if (m.find()) {\n//     vars.put('RESPONSE_REQUEST_ID', m.group(1).trim())\n// }\n",
-  "setup_start": "// ============================================================\n// [任意] テスト開始処理（setUp Thread Group / JSR223 Sampler）\n//  テスト開始時に1回だけ実行されます。\n//  ・実行条件（パラメータ欄）を jmeter.log に出力します。\n//  ・前回の実行（GUI で連続実行した場合）の集計値・結果ログをリセットします。\n//  削除しても他の要素の動作には影響しません。\n// ============================================================\nSampleResult.setIgnore()   // この処理はレポート・JTL に含めない\n\ndef oldWriter = props.remove('API_RESULT_LOG_WRITER')\nif (oldWriter != null) {\n    try {\n        oldWriter.close()\n    } catch (Exception ignored) {\n    }\n}\n['API_RESULT_TOTAL', 'API_RESULT_OK', 'API_RESULT_NG'].each { props.remove(it) }\nprops.put('API_TEST_START_MS', String.valueOf(System.currentTimeMillis()))\nlog.info('==== テスト開始: ' + (Parameters ?: ''))\n",
-  "teardown_end": "// ============================================================\n// [任意] テスト終了処理（tearDown Thread Group / JSR223 Sampler）\n//  すべてのスレッドの終了後に1回だけ実行されます。\n//  ・合計 / 成功 / 失敗件数と経過時間を jmeter.log と結果ログに出力します。\n//    （件数は「結果ログ出力」が有効な場合のみ集計されます）\n//  ・結果ログファイルを閉じ、読み込んだ Excel データを解放します。\n// ============================================================\nSampleResult.setIgnore()   // この処理はレポート・JTL に含めない\n\ndef total = props.get('API_RESULT_TOTAL')\nString counts = total == null ? '件数=集計なし（結果ログ出力が無効）'\n        : '合計=' + total.get() + ' 成功=' + (props.get('API_RESULT_OK')?.get() ?: 0) + ' 失敗=' + (props.get('API_RESULT_NG')?.get() ?: 0)\nString start = props.get('API_TEST_START_MS')\nString elapsed = start ? ' 経過秒=' + (System.currentTimeMillis() - Long.parseLong(start)).intdiv(1000) : ''\nString summary = '==== テスト終了: ' + counts + elapsed\nlog.info(summary)\n\ndef writer = props.remove('API_RESULT_LOG_WRITER')\nif (writer != null) {\n    synchronized (writer) {\n        writer.println('# ' + summary)\n        writer.close()\n    }\n}\nprops.remove('EXCEL_DATA')\nprops.remove('EXCEL_ROW_COUNTER')\n",
-  "result_listener": "// ============================================================\n// [任意] 結果ログ出力（JSR223 Listener）\n//  すべての API の実行結果を 1リクエスト1行（タブ区切り）で api_result.log に出力します。\n//  パラメータ欄: 出力フォルダ|本文出力|最大文字数\n//   ・出力フォルダ: -JRESULT_DIR で変更（~/ は JMX のフォルダ。run コマンドは自動設定）\n//   ・本文出力  : none = 出力しない / error = 失敗時のみ / all = 全件（-JLOG_RESPONSE）\n//   ・最大文字数: リクエスト・レスポンス本文の最大文字数（-JLOG_MAX_CHARS）\n//  ※ 大量実行時はファイル書き込みが負荷になるため、無効化または none を推奨します。\n// ============================================================\nimport java.text.SimpleDateFormat\nimport java.util.concurrent.atomic.AtomicLong\nimport java.util.function.Function\nimport org.apache.jmeter.services.FileServer\n\ndef res = sampleResult\nif (res == null) {\n    return\n}\nString[] p = (Parameters ?: '').split('\\\\|', -1)\nString dirText = (p.length > 0 && p[0].trim()) ? p[0].trim() : '~/result'\nString mode = (p.length > 1 && p[1].trim()) ? p[1].trim().toLowerCase() : 'error'\nint maxChars = (p.length > 2 && p[2].trim().isInteger()) ? p[2].trim().toInteger() : 1000\n\n// 件数の集計（テスト終了処理で出力）\ndef count = { String key -> props.computeIfAbsent(key, { k -> new AtomicLong(0) } as Function).incrementAndGet() }\ncount('API_RESULT_TOTAL')\ncount(res.isSuccessful() ? 'API_RESULT_OK' : 'API_RESULT_NG')\n\n// 出力ファイル（最初の1件で作成し、全スレッドで共有）\ndef writer = props.computeIfAbsent('API_RESULT_LOG_WRITER', { k ->\n    File dir = dirText.startsWith('~/') ? new File(FileServer.getFileServer().getBaseDir(), dirText.substring(2)) : new File(dirText)\n    dir.mkdirs()\n    File file = new File(dir, 'api_result.log')\n    boolean isNew = !file.exists() || file.length() == 0\n    def w = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file, true), 'UTF-8'), true)\n    if (isNew) {\n        w.println(['日時', '結果', 'ステータス', '応答時間ms', '受信バイト', 'ラベル', 'リクエスト', 'スレッド', 'メッセージ'].join('\\t'))\n    }\n    log.info('[結果ログ] 出力先: ' + file.getAbsolutePath())\n    return w\n} as Function)\n\n// 改行・タブを除去し、最大文字数で切り詰める\ndef oneLine = { String s, int limit ->\n    if (s == null) {\n        return ''\n    }\n    String t = s.replace('\\r', '').replace('\\n', '\\\\n').replace('\\t', ' ')\n    return (limit > 0 && t.length() > limit) ? t.substring(0, limit) + '...(全' + t.length() + '文字)' : t\n}\nString request = ''\nif (res instanceof org.apache.jmeter.protocol.http.sampler.HTTPSampleResult) {\n    request = (res.getHTTPMethod() ?: '') + ' ' + (res.getUrlAsString() ?: '')\n}\nString message = res.getResponseMessage() ?: ''\ndef failures = res.getAssertionResults().findAll { it.isFailure() || it.isError() }\nif (failures) {\n    message += ' / ' + failures.collect { it.getName() + ': ' + it.getFailureMessage() }.join(' / ')\n}\nString time = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(new Date(res.getStartTime()))\nString line = [time, res.isSuccessful() ? 'OK' : 'NG', res.getResponseCode(), res.getTime(), res.getBytesAsLong(),\n               res.getSampleLabel(), request.trim(), res.getThreadName(), oneLine(message, 1000)].join('\\t')\nsynchronized (writer) {\n    writer.println(line)\n    if (mode == 'all' || (mode == 'error' && !res.isSuccessful())) {\n        writer.println('\\t[REQUEST] ' + oneLine(res.getSamplerData(), maxChars))\n        writer.println('\\t[RESPONSE] ' + oneLine(res.getResponseDataAsString(), maxChars))\n    }\n}\nif (!res.isSuccessful()) {\n    log.warn('[API NG] ' + res.getSampleLabel() + ' status=' + res.getResponseCode() + ' ' + oneLine(message, 500))\n}\n"
+  "setup_start": "// ============================================================\n// [任意] テスト開始処理（setUp Thread Group / JSR223 Sampler）\n//  テスト開始時に1回だけ実行されます。\n//  ・実行条件（パラメータ欄）を jmeter.log に出力します。\n//  ・前回の実行（GUI で連続実行した場合）の集計値・結果ログをリセットします。\n//  削除しても他の要素の動作には影響しません。\n// ============================================================\nSampleResult.setIgnore()   // この処理はレポート・JTL に含めない\n\ndef oldWriter = props.remove('API_RESULT_LOG_WRITER')\nif (oldWriter != null) {\n    try {\n        oldWriter.close()\n    } catch (Exception ignored) {\n    }\n}\n['API_RESULT_TOTAL', 'API_RESULT_OK', 'API_RESULT_NG', 'ACCESS_TOKEN_LATEST', 'ACCESS_TOKEN_CACHE'].each { props.remove(it) }\nprops.put('API_TEST_START_MS', String.valueOf(System.currentTimeMillis()))\nlog.info('==== テスト開始: ' + (Parameters ?: ''))\n",
+  "teardown_end": "// ============================================================\n// [任意] テスト終了処理（tearDown Thread Group / JSR223 Sampler）\n//  すべてのスレッドの終了後に1回だけ実行されます。\n//  ・合計 / 成功 / 失敗件数と経過時間を jmeter.log と結果ログに出力します。\n//    （件数は「結果ログ出力」が有効な場合のみ集計されます）\n//  ・結果ログファイルを閉じ、読み込んだ Excel データ・アクセストークンを解放します。\n// ============================================================\nSampleResult.setIgnore()   // この処理はレポート・JTL に含めない\n\ndef total = props.get('API_RESULT_TOTAL')\nString counts = total == null ? '件数=集計なし（結果ログ出力が無効）'\n        : '合計=' + total.get() + ' 成功=' + (props.get('API_RESULT_OK')?.get() ?: 0) + ' 失敗=' + (props.get('API_RESULT_NG')?.get() ?: 0)\nString start = props.get('API_TEST_START_MS')\nString elapsed = start ? ' 経過秒=' + (System.currentTimeMillis() - Long.parseLong(start)).intdiv(1000) : ''\nString summary = '==== テスト終了: ' + counts + elapsed\nlog.info(summary)\n\ndef writer = props.remove('API_RESULT_LOG_WRITER')\nif (writer != null) {\n    synchronized (writer) {\n        writer.println('# ' + summary)\n        writer.close()\n    }\n}\n['EXCEL_DATA', 'EXCEL_ROW_COUNTER', 'ACCESS_TOKEN_LATEST', 'ACCESS_TOKEN_CACHE'].each { props.remove(it) }\n",
+  "result_listener": "// ============================================================\n// [任意] 結果ログ出力（JSR223 Listener）\n//  すべての API の実行結果を 1リクエスト1行（タブ区切り）で api_result.log に出力します。\n//  パラメータ欄: 出力フォルダ|本文出力|最大文字数\n//   ・出力フォルダ: -JRESULT_DIR で変更（~/ は JMX のフォルダ。run コマンドは自動設定）\n//   ・本文出力  : none = 出力しない / error = 失敗時のみ / all = 全件（-JLOG_RESPONSE）\n//   ・最大文字数: リクエスト・レスポンス本文の最大文字数（-JLOG_MAX_CHARS）\n//  ※ 大量実行時はファイル書き込みが負荷になるため、無効化または none を推奨します。\n// ============================================================\nimport java.text.SimpleDateFormat\nimport java.util.concurrent.atomic.AtomicLong\nimport java.util.function.Function\nimport org.apache.jmeter.services.FileServer\n\ndef res = sampleResult\nif (res == null) {\n    return\n}\nString[] p = (Parameters ?: '').split('\\\\|', -1)\nString dirText = (p.length > 0 && p[0].trim()) ? p[0].trim() : '~/result'\nString mode = (p.length > 1 && p[1].trim()) ? p[1].trim().toLowerCase() : 'error'\nint maxChars = (p.length > 2 && p[2].trim().isInteger()) ? p[2].trim().toInteger() : 1000\n\n// 件数の集計（テスト終了処理で出力）\ndef count = { String key -> props.computeIfAbsent(key, { k -> new AtomicLong(0) } as Function).incrementAndGet() }\ncount('API_RESULT_TOTAL')\ncount(res.isSuccessful() ? 'API_RESULT_OK' : 'API_RESULT_NG')\n\n// 出力ファイル（最初の1件で作成し、全スレッドで共有）\ndef writer = props.computeIfAbsent('API_RESULT_LOG_WRITER', { k ->\n    String normDir = dirText.replace('\\\\', '/')\n    File dir = normDir.startsWith('~/') ? new File(FileServer.getFileServer().getBaseDir(), normDir.substring(2)) : new File(dirText)\n    dir.mkdirs()\n    File file = new File(dir, 'api_result.log')\n    boolean isNew = !file.exists() || file.length() == 0\n    def w = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file, true), 'UTF-8'), true)\n    if (isNew) {\n        w.println(['日時', '結果', 'ステータス', '応答時間ms', '受信バイト', 'ラベル', 'リクエスト', 'スレッド', 'メッセージ'].join('\\t'))\n    }\n    log.info('[結果ログ] 出力先: ' + file.getAbsolutePath())\n    return w\n} as Function)\n\n// 改行・タブを除去し、最大文字数で切り詰める\ndef oneLine = { String s, int limit ->\n    if (s == null) {\n        return ''\n    }\n    String t = s.replace('\\r', '').replace('\\n', '\\\\n').replace('\\t', ' ')\n    return (limit > 0 && t.length() > limit) ? t.substring(0, limit) + '...(全' + t.length() + '文字)' : t\n}\nString request = ''\nif (res instanceof org.apache.jmeter.protocol.http.sampler.HTTPSampleResult) {\n    request = (res.getHTTPMethod() ?: '') + ' ' + (res.getUrlAsString() ?: '')\n}\nString message = res.getResponseMessage() ?: ''\ndef failures = res.getAssertionResults().findAll { it.isFailure() || it.isError() }\nif (failures) {\n    message += ' / ' + failures.collect { it.getName() + ': ' + it.getFailureMessage() }.join(' / ')\n}\nString time = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(new Date(res.getStartTime()))\nString line = [time, res.isSuccessful() ? 'OK' : 'NG', res.getResponseCode(), res.getTime(), res.getBytesAsLong(),\n               res.getSampleLabel(), request.trim(), res.getThreadName(), oneLine(message, 1000)].join('\\t')\nsynchronized (writer) {\n    writer.println(line)\n    if (mode == 'all' || (mode == 'error' && !res.isSuccessful())) {\n        writer.println('\\t[REQUEST] ' + oneLine(res.getSamplerData(), maxChars))\n        writer.println('\\t[RESPONSE] ' + oneLine(res.getResponseDataAsString(), maxChars))\n    }\n}\nif (!res.isSuccessful()) {\n    log.warn('[API NG] ' + res.getSampleLabel() + ' status=' + res.getResponseCode() + ' ' + oneLine(message, 500))\n}\n"
  },
  "linux_cmd": {
   "suffix": "_linux_cmd.txt",
@@ -1277,7 +1277,7 @@ $script:SpecJson = @'
    "EXCEL_FILE": "Excel データ",
    "ACCESS_TOKEN_DIR": "アクセストークン"
   },
-  "template": "################################################################################\n#  JMeter CLI の実行コマンド（Linux サーバ用）\n#    JMX          : @@JMX@@\n#    テストプラン : @@PLAN@@\n#    作成         : jmeter_api_tool @@VERSION@@（@@DATE@@）\n################################################################################\nこのファイルは、JMX を Linux サーバに持ち込み、JMeter の CLI（非 GUI）モードで実行するためのコマンドと、\n各パラメータの説明です。-J で指定している値は JMX の既定値です。必要に応じて書き換えてから実行してください。\n\n================================================================================\n1. 前提\n================================================================================\n- Java 17（8 以上）と Apache JMeter 5.6.3 がインストールされていること（例: /opt/apache-jmeter-5.6.3）。\n  確認: java -version / jmeter -v\n- jmeter にパスが通っていない場合は、下のコマンドの jmeter を /opt/apache-jmeter-5.6.3/bin/jmeter のように\n  フルパスで書いてください。\n\n================================================================================\n2. サーバに持ち込むファイル（JMX と同じフォルダ構成で配置します）\n================================================================================\n  JMX を置くフォルダ（例: /opt/jmeter_test）\n@@FILES@@\n\n  転送の例: scp -r <JMX のフォルダ>/ ユーザー@サーバ:/opt/jmeter_test/\n  ※ 相対パスは JMX のフォルダが基準です。ファイルが無いと CSV データ読込などの要素がエラーになるため、\n     使わない要素は JMX から削除するか、ファイルを配置してください。\n\n================================================================================\n3. 実行コマンド（そのまま貼り付けて実行できます）\n================================================================================\ncd /opt/jmeter_test\nRUN_DIR=\"result/@@STEM@@_$(date +%Y%m%d_%H%M%S)\"\nmkdir -p \"$RUN_DIR\"\nexport HEAP=\"-Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m\"\n@@CMD_ML@@\n\n1 行で書く場合:\n@@CMD_1L@@\n\n長時間の実行で端末を閉じても続ける場合は、コマンドの前に nohup、後ろに > \"$RUN_DIR/console.log\" 2>&1 & を付けます。\n  例: nohup jmeter -n -t ...（上と同じオプション） > \"$RUN_DIR/console.log\" 2>&1 &\n\n================================================================================\n4. JMeter のオプション\n================================================================================\n  -n                          CLI（非 GUI）モードで実行します。\n  -t JMX                      実行するテスト計画（JMX）。\n  -l ファイル                 全リクエストの結果（JTL。CSV 形式）の出力先。\n  -j ファイル                 JMeter の実行ログ（jmeter.log）の出力先。\n  -e                          テスト終了後に HTML レポートを作成します。\n  -o フォルダ                 HTML レポートの出力先（存在しないか空のフォルダ）。\n  -J名前=値                   JMeter プロパティ。JMX の ${__P(名前,既定値)} の値を実行時に変更します（下記 5.）。\n  -Jjmeter.save.saveservice.subresults=false\n                              リダイレクトなどのサブ結果を JTL に出力しません（件数が API の実行回数と一致します）。\n  -f                          （任意）既存の結果ファイル・レポートフォルダを削除してから実行します。\n  -H ホスト -P ポート         （任意）プロキシサーバー経由で接続します。\n  -L レベル                   （任意）ログレベル（例: -LDEBUG）。\n  環境変数 HEAP               JVM のヒープサイズ。スレッド数が多い場合は増やします（例: -Xms4g -Xmx4g）。\n\n================================================================================\n5. プロパティ（-J名前=値）の説明（この JMX で使用しているもの）\n================================================================================\n@@PROPS@@\n\n================================================================================\n6. 実行後の確認\n================================================================================\n  ls \"$RUN_DIR\"                                                   # result.jtl / jmeter.log / report/ / api_result.log など\n  awk -F',' 'NR>1 && $8==\"false\"' \"$RUN_DIR/result.jtl\" | wc -l   # 失敗件数（ラベルにカンマが無い場合）\n  grep -E ' (ERROR|WARN) ' \"$RUN_DIR/jmeter.log\" | tail -n 20     # エラー・警告の確認\n  HTML レポート: \"$RUN_DIR/report/index.html\" をブラウザで開きます\n  （手元に取得する例: scp -r ユーザー@サーバ:/opt/jmeter_test/result ./）\n\n================================================================================\n7. 実行中の停止\n================================================================================\n  /opt/apache-jmeter-5.6.3/bin/shutdown.sh   # 実行中のリクエストの完了を待って停止\n  /opt/apache-jmeter-5.6.3/bin/stoptest.sh   # すぐに停止\n\n================================================================================\n8. 補足\n================================================================================\n- RESULT_DIR を相対パスで指定した場合は、jmeter を実行したフォルダ（カレントディレクトリ）が基準になります。\n  上のコマンドでは、結果をすべて \"$RUN_DIR\" にまとめています。\n- このツール（jmeter_api_tool.sh）もサーバに持ち込んだ場合は、次のコマンドでも同じように実行できます\n  （結果フォルダの作成・集計結果の表示まで行います）。\n    ./jmeter_api_tool.sh run -t @@JMX@@ --threads 10 --loops 100\n"
+  "template": "################################################################################\n#  JMeter CLI の実行コマンド（Linux サーバ用）\n#    JMX          : @@JMX@@\n#    テストプラン : @@PLAN@@\n#    作成         : jmeter_api_tool @@VERSION@@（@@DATE@@）\n################################################################################\nこのファイルは、JMX を Linux サーバに持ち込み、JMeter の CLI（非 GUI）モードで実行するためのコマンドと、\n各パラメータの説明です。-J で指定している値は JMX の既定値です。必要に応じて書き換えてから実行してください。\n\n================================================================================\n1. 前提\n================================================================================\n- Java 17（8 以上）と Apache JMeter 5.6.3 がインストールされていること（例: /opt/apache-jmeter-5.6.3）。\n  確認: java -version / jmeter -v\n- jmeter にパスが通っていない場合は、下のコマンドの jmeter を /opt/apache-jmeter-5.6.3/bin/jmeter のように\n  フルパスで書いてください。\n\n================================================================================\n2. サーバに持ち込むファイル（JMX と同じフォルダ構成で配置します）\n================================================================================\n  JMX を置くフォルダ（例: /opt/jmeter_test）\n@@FILES@@\n\n  転送の例: scp -r <JMX のフォルダ>/ ユーザー@サーバ:/opt/jmeter_test/\n  ※ 相対パスは JMX のフォルダが基準です。ファイルが無いと CSV データ読込などの要素がエラーになるため、\n     使わない要素は JMX から削除するか、ファイルを配置してください。\n\n================================================================================\n3. 実行コマンド（そのまま貼り付けて実行できます）\n================================================================================\ncd /opt/jmeter_test\nRUN_DIR=\"result/@@STEM@@_$(date +%Y%m%d_%H%M%S)\"\nmkdir -p \"$RUN_DIR\"\nexport HEAP=\"-Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m\"\n@@CMD_ML@@\n\n1 行で書く場合:\n@@CMD_1L@@\n\n長時間の実行で端末を閉じても続ける場合は、コマンドの前に nohup、後ろに > \"$RUN_DIR/console.log\" 2>&1 & を付けます。\n  例: nohup jmeter -n -t ...（上と同じオプション） > \"$RUN_DIR/console.log\" 2>&1 &\n\n================================================================================\n4. JMeter のオプション\n================================================================================\n  -n                          CLI（非 GUI）モードで実行します。\n  -t JMX                      実行するテスト計画（JMX）。\n  -l ファイル                 全リクエストの結果（JTL。CSV 形式）の出力先。\n  -j ファイル                 JMeter の実行ログ（jmeter.log）の出力先。\n  -e                          テスト終了後に HTML レポートを作成します。\n  -o フォルダ                 HTML レポートの出力先（存在しないか空のフォルダ）。\n  -J名前=値                   JMeter プロパティ。JMX の ${__P(名前,既定値)} の値を実行時に変更します（下記 5.）。\n  -Jjmeter.save.saveservice.subresults=false\n                              リダイレクトなどのサブ結果を JTL に出力しません（件数が API の実行回数と一致します）。\n  -f                          （任意）既存の結果ファイル・レポートフォルダを削除してから実行します。\n  -H ホスト -P ポート         （任意）プロキシサーバー経由で接続します。\n  -L レベル                   （任意）ログレベル（例: -LDEBUG）。\n  環境変数 HEAP               JVM のヒープサイズ。スレッド数が多い場合は増やします（例: -Xms4g -Xmx4g）。\n\n================================================================================\n5. プロパティ（-J名前=値）の説明（この JMX で使用しているもの）\n================================================================================\n@@PROPS@@\n\n================================================================================\n6. 実行後の確認\n================================================================================\n  ls \"$RUN_DIR\"                                                   # result.jtl / jmeter.log / report/ / api_result.log など\n  awk -F',' 'NR>1 && $8==\"false\"' \"$RUN_DIR/result.jtl\" | wc -l   # 失敗件数（ラベルにカンマが無い場合）\n  grep -E ' (ERROR|WARN) ' \"$RUN_DIR/jmeter.log\" | tail -n 20     # エラー・警告の確認\n  HTML レポート: \"$RUN_DIR/report/index.html\" をブラウザで開きます\n  （手元に取得する例: scp -r ユーザー@サーバ:/opt/jmeter_test/result ./）\n  jmeter -g \"$RUN_DIR/result.jtl\" -o \"$RUN_DIR/report_regen\"      # HTML レポートだけを JTL から作り直す（出力先は新しいフォルダ）\n\n================================================================================\n7. 実行中の停止\n================================================================================\n  /opt/apache-jmeter-5.6.3/bin/shutdown.sh   # 実行中のリクエストの完了を待って停止\n  /opt/apache-jmeter-5.6.3/bin/stoptest.sh   # すぐに停止\n\n================================================================================\n8. 補足\n================================================================================\n- RESULT_DIR を相対パスで指定した場合は、jmeter を実行したフォルダ（カレントディレクトリ）が基準になります。\n  上のコマンドでは、結果をすべて \"$RUN_DIR\" にまとめています。\n- このツール（jmeter_api_tool.sh）もサーバに持ち込んだ場合は、次のコマンドでも同じように実行できます\n  （結果フォルダの作成・集計結果の表示まで行います）。\n    ./jmeter_api_tool.sh run -t @@JMX@@ --threads 10 --loops 100\n"
  },
  "update": {
   "base_suffix": ".base.json",
@@ -1996,7 +1996,7 @@ $script:SpecJson = @'
    82
   ]
  },
- "manual_md": "# JMeter APIテスト 利用方法\n\n> 対象: Apache JMeter 5.6.3 ／ RHEL 9.8 ／ Windows 11 ／ ツール: jmeter_api_tool v1.0.0（@@DATE@@ 出力）\n\n本書は、REST API の定義（URL・HTTPメソッド・クエリパラメータ・ヘッダ・リクエストボディ）を Excel または CSV に記入するか OpenAPI 定義（JSON）を指定して、JMeter のテスト計画ファイル（JMX）を自動生成して実行し、結果を確認するまでの手順をまとめたものです。\n\n## 1.概要\n<!-- summary: ツールでできること・ファイル構成・作業の流れ -->\n\n### このツールでできること\n- Excel / CSV に記入した API 定義、または OpenAPI 3.0.x の定義ファイル（JSON）から、JMeter 5.6.3 用の JMX ファイルを自動生成します（OpenAPI は「6.OpenAPI定義から生成」参照）。\n- curl コマンド（ブラウザの開発者ツールの「Copy as cURL」など）を解析して、API一覧（Excel / CSV）に 1 行追加できます（add-curl コマンド。「3.JMX生成」参照）。\n- JMeter GUI で調整した JMX を、API 定義（Excel / CSV / OpenAPI）の変更に合わせて、違う箇所だけ更新できます。更新する箇所は書き換える前に一覧で表示します（generate -u。「8.JMXの更新」参照）。\n- JMX を Linux サーバに持ち込んで JMeter の CLI で実行するためのコマンドと、各パラメータの説明をテキストファイル（JMX名_linux_cmd.txt）に出力します（「9.実行方法」参照）。\n- 生成される JMX には、API テストでよく使う要素（待機タイマ、連番・乱数、CSV / Excel データ読込、クッキー、前処理・後処理、正規表現 / JSON 抽出、応答の検証、結果出力）があらかじめ組み込まれています。\n- 既定は「1スレッド × 1回」の実行です。実行時のプロパティ指定（例: -JTHREADS=10 -JLOOPS=100）だけで、大量件数の負荷試験に切り替えられます。\n- 実行結果は JTL（CSV）、HTML レポート、jmeter.log、結果ログ（api_result.log）、エラー詳細（error_detail.xml）に出力されます。\n- 生成される要素の名前には [必須] / [任意] を付けています。[任意] の要素は JMeter GUI で右クリック →「Remove」で削除するだけで、他の要素に影響を与えずに取り除けます。\n\n### ファイル構成\n<!-- cols: 36,74 -->\n| パス | 内容 |\n|---|---|\n| jmeter_api_tool.sh | RHEL 9.8 用スクリプト（bash + python3 標準ライブラリのみ使用） |\n| jmeter_api_tool.ps1 | Windows 11 用スクリプト（Windows PowerShell 5.1 / PowerShell 7 で動作） |\n| jmeter_api_tool.bat | Windows 用の起動ファイル（実行ポリシーを一時的に回避して .ps1 を起動） |\n| input/api_definition.xlsx | 入力テンプレート（Excel）：「API一覧」「設定」「記入方法」シート |\n| input/api_definition.csv | 入力テンプレート（CSV）：API 一覧 |\n| input/api_definition_settings.csv | 入力テンプレート（CSV）：設定 |\n| input/openapi_config.csv | OpenAPI 定義（.json）から生成する場合の設定（接続先・HTTP ヘッダ・アクセストークン・定義の変数 ${public_base_url} / ${name_prefix} の値）。generate の -c / -OpenApiConfig で指定 |\n| output/api_test.jmx | 生成された JMX（サンプル） |\n| output/api_test_linux_cmd.txt | Linux サーバで JMeter の CLI を実行するコマンドと各パラメータの説明（サンプル。generate で JMX と一緒に出力） |\n| output/data/testdata.csv | CSV データ読込のサンプルデータ |\n| output/data/testdata.xlsx | Excel データ読込のサンプルデータ |\n| docs/JMeter_Usage_Guide.xlsx / .md | 本書（manual コマンドで出力） |\n| result/JMX名_日時/ | run コマンドの実行結果（JTL・ログ・HTML レポート） |\n\n### 作業の流れ\n1. テンプレートを作成する（init コマンド）\n2. API 定義と設定を記入する（Excel または CSV。curl コマンドから 1 行追加することもできます（add-curl）。OpenAPI 定義から生成する場合は「6.OpenAPI定義から生成」）\n3. JMX を生成する（generate コマンド）\n4. JMeter GUI で内容を確認し、不要な [任意] 要素を削除・調整する（API 定義を変更した場合は generate -u で JMX を差分だけ更新する）\n5. CLI モードで実行する（run コマンド。Linux サーバでは JMX と一緒に出力される「JMX名_linux_cmd.txt」のコマンド）\n6. 結果（HTML レポート・JTL・ログ）を確認する\n\n> ファイル名・フォルダ名はすべて英数字にしています。Windows と Linux の間でファイルを転送したときの文字化けを防ぐためです。\n\n## 2.環境構築\n<!-- summary: Java・JMeter 5.6.3 のインストールと動作確認（RHEL 9.8 / Windows 11） -->\n\n### 必要なソフトウェア\n<!-- cols: 18,30,30,40 -->\n| ソフトウェア | RHEL 9.8 | Windows 11 | 備考 |\n|---|---|---|---|\n| Java | java-17-openjdk（dnf） | JDK 17（Eclipse Temurin 等） | JMeter 5.6.3 は Java 8 以上で動作。17 を推奨 |\n| Apache JMeter | 5.6.3（.tgz） | 5.6.3（.zip） | https://archive.apache.org/dist/jmeter/binaries/ |\n| スクリプト実行環境 | bash・python3（OS 標準） | Windows PowerShell 5.1（OS 標準） | 追加のモジュール・ライブラリは不要 |\n| Excel | 不要 | 不要（記入・閲覧には推奨） | xlsx の読み書きはスクリプト自身が行います |\n\n### RHEL 9.8 へのインストール\n```bash\n# Java 17（GUI を使わないサーバーなら java-17-openjdk-headless でも可）\nsudo dnf install -y java-17-openjdk\njava -version\n\n# JMeter 5.6.3（ダウンロード・チェックサム確認・展開）\ncd /opt\nsudo curl -LO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz\nsudo curl -LO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz.sha512\nsha512sum -c apache-jmeter-5.6.3.tgz.sha512\nsudo tar xzf apache-jmeter-5.6.3.tgz\n\n# 環境変数（~/.bashrc に追記）\necho 'export JMETER_HOME=/opt/apache-jmeter-5.6.3' >> ~/.bashrc\necho 'export PATH=$JMETER_HOME/bin:$PATH' >> ~/.bashrc\nsource ~/.bashrc\njmeter -v\n```\n- python3 は RHEL 9 のパッケージ管理（dnf）が使用しているため、通常は導入済みです（確認: `python3 --version`）。無い場合は `sudo dnf install -y python3` で導入します。\n- ツールのファイルを Windows から転送して改行コードが CRLF になった場合は、`sed -i 's/\\r$//' jmeter_api_tool.sh` で LF に戻してください。\n- GUI を使う場合に日本語が □ で表示されるときは、日本語フォントを導入します（例: `sudo dnf install -y google-noto-sans-cjk-ttc-fonts`）。\n\n### Windows 11 へのインストール\n1. JDK 17 をインストールします（例: Eclipse Temurin 17 の .msi。インストール時に「JAVA_HOME 変数の設定」と「PATH への追加」を有効にします）。\n2. https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.zip をダウンロードし、ファイルのプロパティで「許可する（ブロック解除）」にチェックしてから、C:\\apache-jmeter-5.6.3 などスペースや日本語を含まないフォルダに展開します。\n3. 環境変数 JMETER_HOME に展開先のフォルダを設定します（下記のコマンド、または「システムの詳細設定」→「環境変数」）。\n4. PowerShell を開き直して動作を確認します。\n\n```powershell\n[Environment]::SetEnvironmentVariable('JMETER_HOME', 'C:\\apache-jmeter-5.6.3', 'User')\n# PowerShell を開き直してから確認\njava -version\n& \"$env:JMETER_HOME\\bin\\jmeter.bat\" -v\n```\n\n### ツールの配置と動作確認\nツール一式を任意のフォルダ（例: RHEL は ~/JMeter_API_Generate、Windows は C:\\work\\JMeter_API_Generate）に配置し、ヘルプが表示されることを確認します。\n\n```bash\n# RHEL 9.8\ncd ~/JMeter_API_Generate\nchmod +x jmeter_api_tool.sh\n./jmeter_api_tool.sh help\n```\n\n```powershell\n# Windows 11（PowerShell またはコマンドプロンプト）\ncd C:\\work\\JMeter_API_Generate\n.\\jmeter_api_tool.bat help\n```\n- jmeter_api_tool.bat は PowerShell の実行ポリシー（既定では .ps1 の実行が禁止）を、その実行に限って回避して起動します。PowerShell から直接実行する場合は `powershell -ExecutionPolicy Bypass -File .\\jmeter_api_tool.ps1 help` としてください。\n- インターネットから取得した ZIP を展開した場合は、事前に `Get-ChildItem -Recurse | Unblock-File` でブロックを解除しておくと確実です。\n\n## 3.JMX生成\n<!-- summary: テンプレート作成から JMX 生成・GUI での確認までの手順 -->\n\n### 手順1：テンプレートを作成する\n```bash\n./jmeter_api_tool.sh init          # RHEL 9.8\n```\n```powershell\n.\\jmeter_api_tool.bat init         # Windows 11\n```\ninput フォルダに次の 4 ファイルが作成されます（既存ファイルは上書きしません。上書きする場合は -f / -Force を付けます）。\n- api_definition.xlsx（Excel 形式のテンプレート）\n- api_definition.csv（CSV 形式：API 一覧）\n- api_definition_settings.csv（CSV 形式：設定）\n- openapi_config.csv（CSV 形式：OpenAPI 定義から生成する場合の接続先・HTTP ヘッダ・アクセストークン・定義の変数 ${public_base_url} / ${name_prefix} の値。generate の -c / -OpenApiConfig で指定）\n\n### 手順2：API 定義を記入する\n- Excel 形式：「API一覧」シートに 1行 = 1API で記入し、「設定」シートの「設定値」列で全体設定を変更します。\n- CSV 形式：api_definition.csv に API を、api_definition_settings.csv に設定を記入します。\n- テンプレートには記入例として、postman-echo.com（送信した内容をそのまま返す公開サービス）を呼び出す 4 件の API が入っています。自分の API に書き換えてください。\n- 入力項目の詳細は「4.入力項目_設定」「5.入力項目_API」シートを参照してください。\n\n> CSV を Excel で保存する場合は「CSV UTF-8（コンマ区切り）」を選んでください。Shift_JIS の「CSV（コンマ区切り）」で保存したファイルも自動判別して読み込めます。\n\n### curl コマンドから API を追加する（add-curl）\nブラウザの開発者ツール（ネットワーク → 右クリック →「Copy as cURL」）や API の仕様書にある curl コマンドを解析して、API一覧に 1 行追加します。Excel は「API一覧」シートの最後の API の次の行（空白行）に、CSV はファイルの末尾に追加します。元のファイルは「ファイル名.日時.bak」に退避してから書き換えます。\n\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh add-curl -i input/api_definition.xlsx --curl-file curl.txt\n./jmeter_api_tool.sh add-curl -i input/api_definition.csv --name 注文登録 -- curl -X POST https://api.example.com/v1/orders -H 'Content-Type: application/json' -d '{\"item\":\"A001\"}'\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat add-curl -i input\\api_definition.xlsx -CurlFile curl.txt\n.\\jmeter_api_tool.bat add-curl -i input\\api_definition.csv -CurlFile curl.txt -ApiName 注文登録 -DryRun\n```\n\n<!-- cols: 24,28,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -i ファイル | -InputFile（-i） | 追加先の API一覧（.xlsx / .csv）。必須 |\n| --curl-file ファイル | -CurlFile ファイル | curl コマンドを書いたテキストファイル（コピーした内容をそのまま保存したもの。行末の \\ ・ ^ ・ ` で改行した複数行のコマンドも可） |\n| --curl \"curl …\" | -Curl \"curl …\" | curl コマンドを文字列で指定（\" を含むコマンドは --curl-file / -CurlFile で指定してください） |\n| -- curl … | （なし） | -- の後ろに curl コマンドをそのまま書く（sh のみ） |\n| --name API名 | -ApiName API名 | API名（省略時は「メソッド パス」。例: POST /v1/orders） |\n| --dry-run | -DryRun | 追加する行を表示するだけで、ファイルは書き換えない |\n\n<!-- cols: 40,78 -->\n| curl のオプション | API一覧に設定する値 |\n|---|---|\n| URL | URL（スキーム・ホスト・ポート・パス）とクエリパラメータ（? 以降を 1 行 1 つ。%XX は元の文字に戻す）。スキームが無い場合は http |\n| -X / --request | メソッド（省略時は -d・-F があれば POST、-G は GET、-I は HEAD、-T は PUT、それ以外は GET） |\n| -H / --header | ヘッダ（1 行 1 つ）。Content-Length・Transfer-Encoding は JMeter が自動で付けるため追加しない |\n| -d / --data / --data-raw / --data-binary / --data-urlencode / --json | リクエストボディ。名前=値 の形式は form、JSON は json、それ以外は raw（-G を付けた場合はクエリパラメータ。@ファイル はファイルの内容） |\n| -F / --form / --form-string | multipart のボディ（名前=値）。ファイルの送信（名前=@ファイル）は追加しないため、JMeter の「Files Upload」タブで設定する |\n| -u / --user、URL の ユーザー:パスワード@ | ヘッダ Authorization: Basic …（パスワードが無い場合は作らない） |\n| --oauth2-bearer | ヘッダ Authorization: Bearer … |\n| -b / --cookie、-A / --user-agent、-e / --referer | ヘッダ Cookie / User-Agent / Referer（-b ファイル名 は読み込まない） |\n| -s・-L・-k・--compressed など | JMeter の HTTP リクエストに関係しないため無視する（-x プロキシ・--cert など JMeter で別に設定するものは、設定方法を警告で表示して無視） |\n\n- 1 回に追加するのは 1 行です（&& や ; でつないだ 2 つ目以降のコマンドと、--next 以降は読みません）。\n- No は既存の No の最大値 + 1、有効は Y、備考は「curl コマンドから追加」です。Excel は書式（罫線・折り返し）を上の行から引き継ぎ、行の高さを内容に合わせます。\n- CSV は元の文字コード（UTF-8 / UTF-8（BOM 付き）/ Shift_JIS / UTF-16）と改行コードのまま追記します。Shift_JIS で表せない文字を含む場合はエラーになるため、CSV を UTF-8 で保存し直してください。\n- 追加した後は generate で JMX を生成します。生成済みの JMX がある場合は generate -u で、追加した API だけを JMX に追加できます（「8.JMXの更新」参照）。\n\n### 手順3：JMX を生成する\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx\n./jmeter_api_tool.sh generate -i input/api_definition.csv -s input/api_definition_settings.csv\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx\n.\\jmeter_api_tool.bat generate -i input\\api_definition.csv -s input\\api_definition_settings.csv\n```\n\n<!-- cols: 22,30,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -i ファイル | -InputFile（-i） | 入力ファイル（.xlsx / .csv、OpenAPI 定義は .json）。必須 |\n| -s ファイル | -SettingsFile（-s） | 設定 CSV。省略時は「入力ファイル名_settings.csv」を探し、無ければ既定値を使用（Excel 入力時は「設定」シートを使用） |\n| -o フォルダ | -OutDir（-o） | 出力先フォルダ（既定: output） |\n| -n ファイル名 | -JmxName（-n） | 出力する JMX のファイル名（例: order_test.jmx）。設定「出力JMXファイル名」（output_file）より優先します |\n| --split | -Split | API ごとに別々の JMX を出力する |\n| -f | -Force（-f） | サンプルデータ（data/testdata.csv / .xlsx）が既にあっても上書きする |\n| -u JMX | -UpdateJmx（-u） | 新しい JMX を作らずに、既存の JMX を入力ファイルとの差分だけ更新する（「8.JMXの更新」参照） |\n| --dry-run | -DryRun | -u と併用: 更新箇所を表示するだけで、ファイルは書き換えない |\n| -c ファイル など | -OpenApiConfig（-c） など | OpenAPI 定義（.json）用のオプション（「6.OpenAPI定義から生成」参照） |\n\n### 生成されるファイル\n<!-- cols: 34,84 -->\n| ファイル | 説明 |\n|---|---|\n| output/出力JMXファイル名 | 生成された JMX。同名のファイルがある場合は「.日時.bak」を付けて退避してから作成します |\n| output/JMX名_linux_cmd.txt | Linux サーバで JMeter の CLI を実行するコマンドと各パラメータの説明（「9.実行方法」参照。JMX名は .jmx を除いた名前）。--split の場合は JMX ごとに出力します |\n| output/出力JMXファイル名.base.json | JMX の更新（generate -u）で使う基準ファイル（生成した内容の控え）。JMX と同じフォルダに置いたままにしてください（--split の場合は作成しません） |\n| output/data/testdata.csv | CSV データ読込用のサンプル（ファイルが無い場合のみ作成） |\n| output/data/testdata.xlsx | Excel データ読込用のサンプル（ファイルが無い場合のみ作成） |\n\n### 手順4：JMeter GUI で確認・調整する\n- RHEL（デスクトップ環境あり）：`jmeter -t output/api_test.jmx`\n- Windows：`%JMETER_HOME%\\bin\\jmeter.bat` をダブルクリックし、「File」→「Open」で JMX を選択\n- 不要な [任意] 要素は右クリック →「Remove」で削除、一時的に外す場合は右クリック →「Disable」で無効化できます。\n- GUI モードは動作確認・デバッグ用です。負荷試験は必ず CLI モード（run コマンド）で実行してください。\n\n## 4.入力項目_設定\n<!-- summary: 「設定」シート（設定 CSV）の全項目と既定値 -->\n「設定」シート（CSV の場合は api_definition_settings.csv）の項目です。設定値が空欄の項目は既定値が使われます。\n\n- ON / OFF / DISABLE の項目は、ON = 生成して有効、OFF = 生成しない、DISABLE = 生成するが無効化（GUI で右クリック →「Enable」ですぐ使える）を表します。\n- 説明欄の「-J名前」は、実行時に -J名前=値（run コマンドでは -J 名前=値 / -Prop 名前=値）で値を変更できることを表します。\n\n<!-- @SETTINGS_TABLE@ -->\n\n## 5.入力項目_API\n<!-- summary: 「API一覧」シート（API CSV）の列と記入ルール -->\n「API一覧」シート（CSV の場合は api_definition.csv）の列です。1行 = 1API で、上から順に実行されます。\n\n<!-- @API_COLUMNS_TABLE@ -->\n\n### 記入のルール\n- 複数の値を書く列（クエリパラメータ、ヘッダ、正規表現抽出など）は、セル内改行（Excel では Alt + Enter）で区切ります。クエリパラメータと form 形式のボディは & 区切りでも記入できます。\n- 先頭の列（No）が # で始まる行はコメントとして読み飛ばします（テンプレートの 4 行目の記入説明など）。\n- URL・パラメータ・ヘッダ・ボディには ${変数名} で JMeter の変数・関数を埋め込めます（例: `${USER_ID}`、`${SEQ}`、`${__UUID()}`）。\n- 「有効」を N にした API は、生成はされますが無効化された状態になります。\n- GET / DELETE / OPTIONS のクエリパラメータは HTTP リクエストの「Parameters」タブに設定されます。それ以外（POST / PUT / PATCH / HEAD など）の場合は URL のパスに付与されます（値は UTF-8 で URL エンコード。${...} の部分はそのまま）。\n- 既に URL エンコード済みの値（%E3%83%86 など）は、二重にエンコードしないよう自動で判定します。\n- GET / DELETE / HEAD / OPTIONS ではリクエストボディは使用できません（指定した場合は警告を表示して無視します）。\n\n### ボディ形式（auto の場合の自動判定）\n<!-- cols: 26,16,76 -->\n| 本文の内容 | 判定 | 送信方法 |\n|---|---|---|\n| { または [ で始まる | json | 本文をそのまま送信。Content-Type が未指定なら application/json を付与 |\n| < で始まる | raw（XML） | 本文をそのまま送信。Content-Type が未指定なら application/xml を付与 |\n| 名前=値 の形式（改行 / & 区切り） | form | パラメータとして送信（application/x-www-form-urlencoded） |\n| 上記以外 | raw | 本文をそのまま送信（Content-Type はヘッダ列で指定） |\n\n## 6.OpenAPI定義から生成\n<!-- summary: OpenAPI 定義（JSON）から JMX を生成する手順・変換ルール・OpenAPI 用設定ファイル -->\ngenerate コマンドの -i に OpenAPI 3.0.x の定義ファイル（JSON、拡張子 .json）を指定すると、定義の各操作（パスとメソッドの組）を「API一覧」と同じ 1行 = 1API に変換してから JMX を生成します。API は定義に書かれた順番に実行されます。\n\n### 生成手順\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh generate -i openapi.json\n./jmeter_api_tool.sh generate -i openapi.json -c input/openapi_config.csv --seed 12345\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i openapi.json\n.\\jmeter_api_tool.bat generate -i openapi.json -c input\\openapi_config.csv -Seed 12345\n```\n\n<!-- cols: 24,28,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -c ファイル | -OpenApiConfig（-c） | OpenAPI 用設定ファイル（下記）。省略時は各項目の既定値を使用 |\n| --seed 数 | -Seed 数 | テストデータの乱数シード（0 以上の整数・12 桁以内）。同じ値なら同じテストデータを再生成します。省略時は毎回ランダム（使ったシードは生成時に表示） |\n| --any-method メソッド | -AnyMethod メソッド | x-amazon-apigateway-any-method（ANY）の API で送るメソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS。既定: GET） |\n| --required-only | -RequiredOnly | 必須（required）のパラメータ・プロパティだけを生成 |\n| --use-examples | -UseExamples | example / default があればランダム値より優先して使用 |\n| --placeholder-value 数値 | -PlaceholderValue 数値 | 値の位置に引用符なしで書かれた ${...}（JSON として読めない部分）に仮に入れる数値（既定: 3000） |\n\n- -s（設定ファイル）・-o・-n・--split・-f の使い方は Excel / CSV と同じです。-s を省略した場合は「入力ファイル名_settings.csv」があれば読み込み、無ければ既定値を使います。\n- 対象は OpenAPI 3.0.x の JSON です（3.1 など 3.0.x 以外は警告を表示し、3.0.x と共通の項目だけを解釈します）。YAML・Swagger 2.0・外部ファイルへの $ref には対応していません（YAML は JSON に変換してから指定してください）。\n\n### API一覧への変換ルール\n<!-- cols: 24,94 -->\n| API一覧の列 | OpenAPI 定義から設定する値 |\n|---|---|\n| No / 有効 / API名 | 定義の順番 / Y / 「メソッド パス [operationId]」（ANY は「ANY(GET) パス」） |\n| メソッド / URL | 操作のメソッドとパス。パスパラメータはデータ型に合ったランダム値（URL エンコード済み）。接続先とパスの先頭は設定 base_url |\n| クエリパラメータ | in: query のパラメータ（style / explode に従って展開） |\n| ヘッダ | Content-Type（リクエストボディの形式）、Accept（成功応答の形式）、in: header / in: cookie のパラメータ、OpenAPI 用設定 API_HEADERS の値（同じ名前のヘッダは API_HEADERS の値を使用） |\n| ボディ形式 / リクエストボディ | requestBody の定義から生成（JSON → json、application/x-www-form-urlencoded → form、multipart/form-data → multipart、XML・テキストなど → raw） |\n| 期待ステータス | 2xx の応答コード（カンマ区切り。2XX だけの場合は空欄） |\n| 備考 | 概要・説明・operationId・認可（security）・API Gateway 統合（x-amazon-apigateway-integration）・乱数シードなど |\n\n- パラメータ・リクエストボディの値は、データ型・format・pattern・minimum / maximum・enum などの定義からランダムに生成します。生成の規則は JMeter_Tools の openapi2jmx と同じで、同じシードなら同じ値になります。\n- 待機時間は設定 default_wait_ms を使います。正規表現抽出・JSON抽出・前処理・後処理・応答検証文字列・応答時間上限は生成しないため、必要に応じて JMeter GUI で追加してください。\n- 認証ヘッダ（Authorization・API-Key）はランダム値では通らないため、OpenAPI 定義のパラメータからは生成しません。Authorization は設定 common_headers、または OpenAPI 用設定ファイルの HEADERS / TOKEN_DIR で、API-Key は API_HEADERS で指定します（API_HEADERS の既定値の API-Key: XXXXXXX は実際のキーに書き換えてください）。指定が無い場合は生成時に警告を表示します。\n- GET / DELETE / HEAD / OPTIONS のリクエストボディは、Excel / CSV と同じ規則で送信しません（警告を表示します）。\n- 設定ファイルで空欄の base_url（servers[0].url。無い場合は http://localhost:8080）・test_plan_name（「タイトル APIのバージョン（OpenAPI のバージョン）」）・output_file（「タイトル.jmx」）は OpenAPI 定義の値を使います（output_file は -n / -JmxName が優先）。\n- 共通ヘッダ・クッキー・連番・CSV / Excel データ読込・結果出力などの要素は、Excel / CSV から生成する場合と同じく設定（「4.入力項目_設定」）に従って生成されます。CSV / Excel データ読込は既定で ON のため、サンプルデータ（data/testdata.csv / .xlsx）も作成されます。使わない場合は設定 csv_data / excel_data を OFF にしてください。\n\n### OpenAPI 用設定ファイル（openapi_config.csv）\nOpenAPI 定義から生成する場合だけ使う設定ファイルです。init で作成される input/openapi_config.csv（列は設定 CSV と同じ）の「設定値」を記入し、generate の -c / -OpenApiConfig で指定します。設定値が空欄の項目は使われず（API_HEADERS は既定値を使用）、テンプレートのままなら -c を指定しない場合と同じ JMX になります。記入した項目は、設定ファイル（-s）・OpenAPI 定義の値より優先します。\n\n<!-- @OPENAPI_CONFIG_TABLE@ -->\n\n- PROTOCOL / HOST / PORT は、記入した項目だけ base_url の接続先を置き換え、パス（例: /v1）はそのまま使います。PORT が空欄の場合はポート番号を付けません（http は 80 / https は 443 で接続）。実行時の -JPROTOCOL= / -JHOST= / -JPORT= も使えます。\n- API_HEADERS の値は各 API のヘッダ（API ごとの HTTP Header Manager）の初期値です。生成後は JMeter で API ごとに変更でき、HEADERS（共通ヘッダ）と同じ名前のヘッダは実行時に API 側が優先されます。\n- TOKEN_DIR を指定すると、共通ヘッダに Authorization: Bearer ${ACCESS_TOKEN} を追加し、JMeter の実行中に API を呼び出すたびに、フォルダ直下の *.token のうち更新日時が最も新しいファイルの内容（前後の空白・改行・BOM を除く）を ${ACCESS_TOKEN} に設定します。トークンは JMX に書き込まず、実行時に読み込みます。\n- 新しい .token ファイルを置く・ファイルを書き換えると、実行中でも次の API 呼び出しから切り替わります（フォルダの確認は 1 秒に 1 回）。拡張子が .token 以外のファイルは使いません。生成時には、そのとき最新の .token ファイル（またはフォルダ・ファイルが無いことの警告）を表示します。\n- TOKEN_DIR の区切りは \\ と / のどちらでも可、相対パスは JMX のフォルダ基準です。Windows と Linux のフォルダを ; で区切って書くと、実行する環境に存在する方を使うため、同じ JMX を両方で使えます（例: C:\\work\\tokens;/home/user/tokens）。実行時に -JACCESS_TOKEN_DIR=フォルダ で変更することもできます。\n- PUBLIC_BASE_URL / NAME_PREFIX は OpenAPI 定義（servers[0].url・info.title）に入れる値です。未設定（空欄）の場合は ${public_base_url} / ${name_prefix} を取り除くため、パスの先頭やテストプラン名・JMX のファイル名に ${...} は残りません（例: ${name_prefix}-orders-api → orders-api）。設定ファイル（-s）で base_url / test_plan_name / output_file を指定した場合は、その設定の値を使います。\n\n## 7.JMX構成\n<!-- summary: 生成される JMX の要素一覧と、削除してよいかの判断基準 -->\n生成される JMX のツリー構成です（記入例を生成した場合）。名前が [必須] の要素は削除しないでください。[任意] の要素は、他の要素に影響を与えずに削除できます。\n\n```text\nテストプラン\n├─ [必須] 共通変数 (User Defined Variables)\n├─ [任意] HTTPリクエスト初期値 (HTTP Request Defaults)\n├─ [任意] 共通ヘッダ (HTTP Header Manager)\n├─ [任意] クッキー管理 (HTTP Cookie Manager)\n├─ [任意] 事前処理 (setUp Thread Group)\n│   ├─ [任意] テスト開始処理 (JSR223 Sampler)\n│   └─ [任意] Excelデータ読込 (JSR223 Sampler)\n├─ [必須] メイン処理 (Thread Group)\n│   ├─ [任意] 連番 SEQ (Counter)\n│   ├─ [任意] 乱数 RANDOM_NO (Random Variable)\n│   ├─ [任意] CSVデータ読込 (CSV Data Set Config)\n│   ├─ [任意] Excelデータ行取得 (JSR223 PreProcessor)\n│   ├─ [任意] 共通前処理 (JSR223 PreProcessor)\n│   ├─ [任意] 共通後処理 (JSR223 PostProcessor)\n│   ├─ [任意] スループット制御 (Constant Throughput Timer) ※既定は無効\n│   ├─ API01_ログイン(POST JSON)  ← HTTP リクエスト（1API = 1つ）\n│   │   ├─ [任意] API01 ヘッダ (HTTP Header Manager)\n│   │   ├─ [任意] API01 待機 500ms (Constant Timer)\n│   │   ├─ [任意] API01 前処理 (JSR223 PreProcessor)\n│   │   ├─ [任意] API01 正規表現抽出 ECHO_URL (Regular Expression Extractor)\n│   │   ├─ [任意] API01 JSON抽出 AUTH_TOKEN (JSON Extractor)\n│   │   ├─ [任意] API01 後処理 (JSR223 PostProcessor)\n│   │   ├─ [任意] API01 ステータス検証 200 (Response Assertion)\n│   │   ├─ [任意] API01 応答本文検証 (Response Assertion)\n│   │   └─ [任意] API01 応答時間検証 5000ms (Duration Assertion)\n│   ├─ API02_商品検索(GET) / API03_注文登録(POST form) / API04_クッキー確認(GET)\n│   └─ [任意] 変数確認 (Debug Sampler) ※既定は無効\n├─ [任意] 事後処理 (tearDown Thread Group)\n│   └─ [任意] テスト終了処理 (JSR223 Sampler)\n├─ [任意] 結果ツリー (View Results Tree)\n├─ [任意] 集計レポート (Summary Report)\n├─ [任意] 統計レポート (Aggregate Report)\n├─ [任意] JTL出力 全件 (Simple Data Writer)\n├─ [任意] エラー詳細出力 XML (Simple Data Writer)\n└─ [任意] 結果ログ出力 (JSR223 Listener)\n```\n\n### 要素の役割と削除時の影響\n<!-- cols: 30,28,52,44 -->\n| 要素 | JMeter の要素 | 役割 | 削除したときの影響 |\n|---|---|---|---|\n| [必須] 共通変数 | User Defined Variables | 接続先（PROTOCOL / HOST / PORT）と共通変数を定義。値は `${__P(名前,既定値)}` 形式で、実行時に -J で変更可能 | 削除不可（各 API が ${HOST} 等を参照） |\n| [任意] HTTPリクエスト初期値 | HTTP Request Defaults | 文字コードと接続 / 応答タイムアウト（CONNECT_TIMEOUT / RESPONSE_TIMEOUT） | タイムアウトが無制限になる |\n| [任意] 共通ヘッダ | HTTP Header Manager | 全 API に付与するヘッダ（設定 common_headers） | 共通ヘッダが送信されない |\n| [任意] クッキー管理 | HTTP Cookie Manager | 応答の Set-Cookie を保存し、以降のリクエストで送信。事前設定クッキーも送信 | クッキーが送信されない（セッションを使う API は失敗） |\n| [任意] 事前処理 | setUp Thread Group | テスト開始前に 1 回だけ実行する処理の入れ物 | 配下の処理（Excel 読込など）も削除される |\n| [任意] テスト開始処理 | JSR223 Sampler | 実行条件をログに出力し、集計値をリセット | 開始ログが出ない（動作には影響なし） |\n| [任意] Excelデータ読込 | JSR223 Sampler | Excel（.xlsx）をメモリに読み込む（Apache POI 不要） | Excel の値が変数に設定されない |\n| [必須] メイン処理 | Thread Group | API を実行する。THREADS / RAMP_UP / LOOPS（/ DURATION）で制御 | 削除不可 |\n| [任意] 連番 | Counter | 反復ごとに連番を ${SEQ} に設定（全スレッドで一意） | ${SEQ} が未定義になる |\n| [任意] 乱数 | Random Variable | 反復ごとに乱数を ${RANDOM_NO} に設定 | ${RANDOM_NO} が未定義になる |\n| [任意] CSVデータ読込 | CSV Data Set Config | CSV を 1 反復につき 1 行読み込み、列を変数に設定 | CSV の変数が未定義になる |\n| [任意] Excelデータ行取得 | JSR223 PreProcessor | Excel データから反復ごとに 1 行を取り出して変数に設定 | Excel の変数が未定義になる |\n| [任意] 共通前処理 | JSR223 PreProcessor | 全 API の直前に実行。${REQUEST_ID} ${TIMESTAMP} ${EPOCH_MS} を生成 | 左記の変数が未定義になる |\n| [任意] 共通後処理 | JSR223 PostProcessor | 全 API の直後に実行。${LAST_STATUS} ${LAST_ELAPSED_MS} を設定 | 左記の変数が未定義になる |\n| [任意] スループット制御 | Constant Throughput Timer | 1 分あたりの目標リクエスト数（THROUGHPUT）に調整。既定は無効 | なし |\n| APIxx_名前 | HTTP Request | API 定義 1 行分のリクエスト | その API が実行されない（配下の要素も削除される） |\n| [任意] APIxx ヘッダ | HTTP Header Manager | その API だけに付けるヘッダ | そのヘッダが送信されない |\n| [任意] APIxx 待機 | Constant Timer | API 呼び出し前の待機時間 | 待機しなくなる |\n| [任意] APIxx 前処理 / 後処理 | JSR223 PreProcessor / PostProcessor | API ごとの前処理・後処理（Groovy） | その処理が行われない |\n| [任意] APIxx 正規表現抽出 / JSON抽出 | Regular Expression Extractor / JSON Extractor | 応答から値を取り出して変数に設定 | 後続の API でその変数が未定義になる |\n| [任意] APIxx ステータス検証 / 応答本文検証 / 応答時間検証 | Response Assertion / Duration Assertion | 応答の検証。失敗はエラーとして集計 | 検証されなくなる |\n| [任意] 変数確認 | Debug Sampler | 変数の一覧を結果ツリーに表示（デバッグ用）。既定は無効 | なし |\n| [任意] 事後処理 / テスト終了処理 | tearDown Thread Group / JSR223 Sampler | 合計・成功・失敗件数をログに出力し、結果ログを閉じる | 終了時のサマリが出ない |\n| [任意] 結果ツリー / 集計レポート / 統計レポート | View Results Tree / Summary Report / Aggregate Report | GUI での結果確認用（ファイル出力なし） | GUI で結果が見られない（CLI 実行には影響なし） |\n| [任意] JTL出力 全件 | Simple Data Writer | 全リクエストの結果を result_all.jtl（CSV）に出力 | JTL が出力されない（run コマンドは別途 result.jtl を出力） |\n| [任意] エラー詳細出力 XML | Simple Data Writer | 失敗したリクエストのみ、リクエスト・レスポンス全文を error_detail.xml に出力 | エラー詳細が出力されない |\n| [任意] 結果ログ出力 | JSR223 Listener | 1 リクエスト 1 行の結果ログ api_result.log を出力 | 結果ログが出力されない |\n\n### 記入例で使っている変数の流れ\n<!-- cols: 30,34,54 -->\n| 変数 | 設定する要素 | 使っている場所（記入例） |\n|---|---|---|\n| PROTOCOL / HOST / PORT | [必須] 共通変数 | 全 API の接続先 |\n| SEQ | [任意] 連番 | API01 のボディ、API03 の orderNo、API04 のクエリ |\n| RANDOM_NO | [任意] 乱数 | API02 のクエリ rand |\n| USER_ID / PASSWORD / KEYWORD | [任意] CSVデータ読込 | API01 のボディ、API02 のクエリ |\n| ITEM_CODE / ITEM_NAME / QUANTITY | [任意] Excelデータ行取得 | API02 のクエリ、API03 のボディ |\n| REQUEST_ID / TIMESTAMP | [任意] 共通前処理 | API01 のヘッダ・ボディ |\n| SIGNATURE | API01 前処理 | API01 のヘッダ X-Signature |\n| AUTH_TOKEN | API01 JSON抽出 | API02 / API03 の Authorization ヘッダ |\n| ORDER_NO | API03 正規表現抽出 | API03 後処理のログ出力 |\n| CLIENT_ID | 共通変数（設定 user_variables） | 共通ヘッダ X-Client-Id |\n\n### 要素を削除・無効化するときのポイント\n- 一時的に外す場合は、削除より「Disable」（右クリック → Disable、または Ctrl + T）が安全です。\n- 変数を設定している要素を削除すると、その変数を使っている箇所では ${変数名} という文字列がそのまま送信されます。上の「変数の流れ」を確認してから削除してください。\n- CSV データ読込は、ファイルが見つからないとスレッドがエラーで停止します。CSV を使わない場合は削除してください。\n- 生成時に設定を OFF にすると、その要素は最初から生成されません（「4.入力項目_設定」参照）。\n\n## 8.JMXの更新\n<!-- summary: JMeter で調整した JMX を、API 定義の変更に合わせて違う箇所だけ更新する（generate -u） -->\ngenerate に -u（PowerShell は -UpdateJmx）で生成済みの JMX を指定すると、新しい JMX は作らずに、入力ファイル（Excel / CSV / OpenAPI 定義）から生成した内容と比べて、違う箇所だけを既存の JMX に反映します。JMeter GUI で追加した要素や変更した値を残したまま、API の追加・変更・削除を取り込めます。更新する箇所は、書き換える前に一覧で表示します。\n\n### 更新手順\n```bash\n# RHEL 9.8\n# 1. 更新箇所を確認する（ファイルは書き換えない）\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx -u output/api_test.jmx --dry-run\n# 2. 更新する\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx -u output/api_test.jmx\n# OpenAPI 定義の場合\n./jmeter_api_tool.sh generate -i openapi.json -c input/openapi_config.csv -u output/OrdersApi.jmx\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx -u output\\api_test.jmx -DryRun\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx -u output\\api_test.jmx\n.\\jmeter_api_tool.bat generate -i openapi.json -c input\\openapi_config.csv -u output\\OrdersApi.jmx\n```\n\n<!-- cols: 22,30,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -u JMX | -UpdateJmx（-u） | 更新する JMX（このツールで生成したもの）。同じ場所・同じファイル名のまま更新します |\n| --dry-run | -DryRun | 更新箇所を表示するだけで、ファイルは書き換えない |\n\n- -i・-s・-c・--seed など入力に関するオプションは、JMX を生成するときと同じです。-o・-n は使いません（指定しても無視します）。--split とは同時に指定できません。\n- 更新前の JMX は「JMX名.jmx.日時.bak」に退避します。更新した後は、基準ファイル（JMX名.jmx.base.json）と Linux サーバでの実行コマンド（JMX名_linux_cmd.txt）も作り直します。\n- 違う箇所が無い場合は、JMX を書き換えません。\n\n### 更新箇所の表示\n```text\n==== JMX の更新内容（output/api_test.jmx） ====\n比較: 前回生成した内容（output/api_test.jmx.base.json）と今回の定義の差分だけを反映します。（以下略）\n[変更] [必須] メイン処理 (Thread Group) / API02_商品検索(GET)\n       パラメータ / リクエストボディ:\n         + sort=new\n[競合] [必須] メイン処理 (Thread Group) / API01_ログイン(POST JSON)\n       パス: /post-gui → /post-v2\n       （JMeter 側でも変更されていましたが、定義の値で更新します）\n[削除] [必須] メイン処理 (Thread Group) / API04_クッキー確認(GET)\n       HTTP リクエスト（配下の要素 5 件を含む）\n[追加] [必須] メイン処理 (Thread Group) / API05_注文取消(DELETE)\n       HTTP リクエスト（配下の要素 2 件を含む）\n----\n追加 1 件 / 変更 1 件 / 削除 1 件 / 競合 1 件 / 維持 0 件（定義に変更が無く JMeter 側の変更を残した箇所: 2、JMeter で削除済みのため追加しなかった要素: 0）\n```\n\n<!-- cols: 14,104 -->\n| 表示 | 内容 |\n|---|---|\n| [追加] | 定義に追加された API・要素を JMX に追加します（生成した順番で直前にある要素の後ろ） |\n| [変更] | 定義が変わった項目（パス・パラメータ・ヘッダ・ボディ・検証・設定値など）を更新します。複数行の値は、- の行を削除し + の行を追加します |\n| [削除] | 定義から無くなった API・要素を、配下の要素ごと JMX から削除します |\n| [競合] | JMeter 側と定義の両方で変更されていた項目です。定義の値で更新します（JMeter 側の値は退避した .bak で確認できます） |\n| [維持] | ツールが作る共通のスクリプト（テスト開始処理・共通前処理など）を JMeter 側で変更していたため、定義の内容にせず JMeter 側の内容を残した項目です |\n\n### 更新のルール\n- 前回生成した内容（基準ファイル JMX名.jmx.base.json）・現在の JMX・今回の定義から生成した内容の 3 つを比べ、前回から定義が変わった箇所だけを JMX に反映します。定義が変わっていない箇所は、JMeter で変更していてもそのまま残します。\n- JMeter で追加した要素（このツールが付けない名前の要素）は、更新・削除の対象外です。JMeter で削除した要素は、定義が変わらない限り追加し直しません。\n- 要素は名前で対応付けます。HTTP リクエストは名前（APIxx_API名）が同じもの、無ければ番号（コメント欄の「APIxx:」または名前の先頭の APIxx_）、API名の順で探します（OpenAPI 定義の場合は、API名（メソッド パス [operationId]）を番号より先に使います）。[必須] / [任意] で始まる要素の名前を JMeter で変更すると、このツールの要素として扱われなくなり、更新されません。\n- JMeter で並べ替えた要素の順番は、そのまま残します（順番の違いは更新しません）。\n- JMeter で保存し直した JMX（書式・属性の順番が変わったもの）も更新できます。改行コード（LF / CRLF）は元の JMX に合わせます。\n- 基準ファイルが無い場合（ファイルを削除した場合や、基準ファイルを作らない以前の版で生成した JMX）は、現在の JMX と今回の定義を直接比べ、違う箇所を定義の内容に更新します。JMeter で変更した値も定義の値に戻り、JMeter で削除した要素も追加し直すため（JMeter で追加した要素と、共通のスクリプトの変更は残します）、先に --dry-run / -DryRun で確認してください。1 回更新すると基準ファイルが作られ、次からは JMeter の変更を残す比較になります。\n- OpenAPI 定義の場合は、同じ API名の API の番号（APIxx）を引き継ぎ、追加された API には既存の番号の続きを付けます。基準ファイルがあれば、操作の定義（パラメータ・リクエストボディ・参照先のスキーマ）が変わっていない API は前回と同じテストデータを使います。乱数シードは前回の値（基準ファイル、無ければ JMX のコメントに書かれた値）を使います（--seed / -Seed で変更できます）。\n\n## 9.実行方法\n<!-- summary: GUI / CLI での実行方法、run コマンド、実行時に変更できるプロパティ -->\n\n### 実行モードの使い分け\n<!-- cols: 16,46,56 -->\n| モード | 用途 | コマンド例 |\n|---|---|---|\n| GUI モード | シナリオの作成・動作確認・デバッグ（少量の実行） | `jmeter -t output/api_test.jmx` |\n| CLI モード | 負荷試験・大量件数の実行・定期実行 | `jmeter -n -t output/api_test.jmx -l result.jtl -e -o report` |\n\n### run コマンド（推奨）\nrun コマンドは CLI モードで JMeter を実行し、結果フォルダ（result/JMX名_日時/）に JTL・ログ・HTML レポートをまとめて出力し、最後に集計結果を表示します。\n\n```bash\n# RHEL 9.8\n# 既定（1スレッド × 1回）\n./jmeter_api_tool.sh run -t output/api_test.jmx\n# 10 スレッド × 100 回（1 API あたり 1,000 件）、ランプアップ 10 秒\n./jmeter_api_tool.sh run -t output/api_test.jmx --threads 10 --loops 100 --rampup 10\n# 接続先を切り替え、ヒープを 2GB にして実行\n./jmeter_api_tool.sh run -t output/api_test.jmx --threads 50 --loops 200 -J HOST=stg.example.com --heap 2g\n```\n\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx -Threads 10 -Loops 100 -RampUp 10\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx -Threads 50 -Loops 200 -Prop HOST=stg.example.com -Heap 2g\n```\n\n<!-- cols: 24,30,64 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -t ファイル | -Jmx（-t） | 実行する JMX。必須 |\n| --threads 数 | -Threads | スレッド数（THREADS） |\n| --rampup 秒 | -RampUp | ランプアップ秒数（RAMP_UP） |\n| --loops 数 | -Loops | ループ回数（LOOPS）。-1 で無限 |\n| --duration 秒 | -Duration | 実行時間（DURATION）。設定 duration を指定して生成した JMX のみ有効 |\n| -J 名前=値 | -Prop 名前=値,名前=値 | 任意のプロパティ。sh は複数回指定可、PowerShell はカンマ区切り |\n| -o フォルダ | -OutDir（-o） | 結果の出力先（既定: result） |\n| --heap サイズ | -Heap | JVM のヒープサイズ（例: 2g）。既定 1g |\n| --jmeter-home フォルダ | -JMeterHome | JMeter のフォルダ。省略時は環境変数 JMETER_HOME → PATH → 標準的な場所の順に探索 |\n| --fail-on-error | -FailOnError | 1 件でもエラーがあれば終了コード 2 を返す（CI 用） |\n| -- 以降の引数 | -ExtraArgs \"引数\" | JMeter にそのまま渡す追加オプション（例: プロキシ -H proxy.example.com -P 8080） |\n\n### 実行時に変更できるプロパティ\n<!-- cols: 34,32,52 -->\n| プロパティ | 既定値 | 説明 |\n|---|---|---|\n| THREADS | 設定 threads | 同時に実行するスレッド数（仮想ユーザー数） |\n| RAMP_UP | 設定 ramp_up | 全スレッドが起動するまでの秒数 |\n| LOOPS | 設定 loops | 各スレッドの繰り返し回数（-1 = 無限） |\n| DURATION | 設定 duration | 実行時間（秒）。duration を指定して生成した JMX のみ |\n| THROUGHPUT | 設定 throughput_per_min | スループット制御を有効にした場合の目標（件 / 分） |\n| PROTOCOL / HOST / PORT | URL から自動設定 | 接続先。2 つ目以降のホストは HOST_2、HOST_3 … |\n| CONNECT_TIMEOUT / RESPONSE_TIMEOUT | 10000 / 30000 | 接続 / 応答タイムアウト（ミリ秒） |\n| CSV_FILE | data/testdata.csv | CSV データファイル（相対パスは JMX のフォルダ基準） |\n| EXCEL_FILE / EXCEL_SHEET | data/testdata.xlsx / 先頭シート | Excel データファイルとシート名 |\n| RESULT_DIR | ~/result | JTL・結果ログの出力先（~/ は JMX のフォルダ。run コマンドは自動設定） |\n| LOG_RESPONSE | error | 結果ログへの本文出力（none / error / all） |\n| LOG_MAX_CHARS | 1000 | 結果ログに出力する本文の最大文字数 |\n| 共通変数の名前（例: ENV） | 設定 user_variables | 設定で定義した共通変数 |\n\n### Linux サーバで実行するコマンド（JMX名_linux_cmd.txt）\ngenerate で JMX を生成すると、同じフォルダに「JMX名_linux_cmd.txt」（例: api_test_linux_cmd.txt）を出力します。JMX を Linux サーバに持ち込み、このツールを使わずに JMeter の CLI で実行するためのテキストファイルで、次の内容を記載しています。\n- 前提（Java・JMeter のインストール）と、サーバに持ち込むファイル（JMX・CSV / Excel のデータファイル・アクセストークンのフォルダ）\n- そのまま貼り付けて実行できるコマンド（結果フォルダの作成と -n / -t / -l / -j / -e -o / -J の指定。複数行と 1 行の 2 通り）\n- JMeter のオプションと、JMX で使っているプロパティ（-J名前=値）ごとの説明・既定値\n- 実行後の確認方法と、実行中の停止方法\n\nJMeter で編集した JMX などから作り直す場合は、linux-cmd コマンドを使います。\n```bash\n./jmeter_api_tool.sh linux-cmd -t output/api_test.jmx       # RHEL 9.8\n```\n```powershell\n.\\jmeter_api_tool.bat linux-cmd -t output\\api_test.jmx      # Windows 11\n```\n\n<!-- cols: 24,30,64 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -t ファイル | -Jmx（-t） | 対象の JMX。必須 |\n| -o フォルダ | -OutDir（-o） | 出力先フォルダ（既定: JMX と同じフォルダ） |\n\n- コマンドの -J の値は、JMX に書かれた既定値（${__P(名前,既定値)} の既定値）です。接続先・スレッド数など、必要な値に書き換えてから実行してください。\n- JMX の ${__P(名前,既定値)} を読み取って作るため、JMeter で追加・変更したプロパティも反映されます。\n\n### JMeter を直接実行する場合\n```bash\n# RHEL 9.8（-f は既存の結果ファイル・レポートフォルダを削除してから実行）\njmeter -n -t output/api_test.jmx -l result/result.jtl -j result/jmeter.log \\\n  -e -o result/report -f -JTHREADS=10 -JLOOPS=100 -JRESULT_DIR=result\n```\n```powershell\n# Windows 11\n& \"$env:JMETER_HOME\\bin\\jmeter.bat\" -n -t output\\api_test.jmx -l result\\result.jtl -j result\\jmeter.log -e -o result\\report -f -JTHREADS=10 -JLOOPS=100 -JRESULT_DIR=result\n```\n- RESULT_DIR を相対パスで指定した場合は、JMeter を起動したフォルダ（カレントディレクトリ）が基準になります。\n- HTML レポートの出力先（-o）は、存在しないか空のフォルダである必要があります（-f を付けると自動で削除されます）。\n\n### GUI モードで実行する場合\n- メニューの「Run」→「Start」（Ctrl + R）で実行し、「結果ツリー」「集計レポート」で結果を確認します。\n- GUI で実行した場合も、JTL・結果ログは RESULT_DIR（既定: JMX と同じフォルダの result）に出力されます。\n- GUI での大量実行は避けてください。画面の描画で JMeter 自体が遅くなり、正しく測定できません。\n\n## 10.大量実行\n<!-- summary: 件数の考え方、負荷試験の推奨設定、JVM・OS の調整 -->\n\n### リクエスト件数の考え方\n総リクエスト件数 = THREADS（スレッド数）× LOOPS（ループ回数）× 有効な API の数\n\n<!-- cols: 22,50,46 -->\n| 目的 | 指定例 | 件数（API 4 本の場合） |\n|---|---|---|\n| 疎通確認（既定） | THREADS=1, LOOPS=1 | 4 件 |\n| 少量の連続実行 | THREADS=1, LOOPS=100 | 400 件 |\n| 並列実行 | THREADS=10, LOOPS=100 | 4,000 件 |\n| 時間指定の負荷試験 | 設定 duration=600 で生成し、THREADS=50, LOOPS=-1 | 600 秒間継続 |\n| CSV の行数だけ実行 | LOOPS=-1、設定 csv_recycle=false・csv_stop_thread=true | CSV 行数 × API 数 |\n\n### 負荷試験の推奨設定\n- CLI モード（run コマンド、または jmeter -n）で実行します。\n- [任意] 結果ログ出力は 1 件ごとにファイルへ書き込むため、毎秒数百件を超える場合は無効化するか、LOG_RESPONSE=none にします。\n- [任意] JTL出力 全件 は run コマンドの result.jtl と同じ内容を別ファイルに書き込むため、大量実行時は無効化してかまいません。\n- [任意] 結果ツリー / 集計レポート / 統計レポートは CLI では負荷になりにくいですが、不要なら削除または無効化します。\n- 待機時間（Constant Timer）で実際の操作間隔を再現し、スループット制御で目標の件数 / 分に合わせます。\n- ランプアップは「スレッド数 ÷ 1 秒あたりに増やしたいスレッド数」を目安にし、急激に負荷をかけないようにします。\n- Excel データは全行をメモリに読み込むため、数万行を超えるデータは CSV を使ってください。\n\n### JVM のヒープサイズ\n<!-- cols: 22,30,66 -->\n| 規模の目安 | ヒープ | 指定方法 |\n|---|---|---|\n| 〜100 スレッド | 1g（既定） | 指定不要 |\n| 〜500 スレッド | 2g 〜 4g | run コマンドの --heap 4g / -Heap 4g |\n| 500 スレッド超 | 4g 以上、または分散実行 | 同上。JMeter を直接実行する場合は環境変数 HEAP（例: -Xms4g -Xmx4g -XX:MaxMetaspaceSize=256m） |\n\n### OS の調整（RHEL 9.8）\n```bash\n# ファイルディスクリプタの上限（スレッド数が多い場合）\nulimit -n                 # 現在値の確認\nulimit -n 65535           # 一時的に変更（恒久的には /etc/security/limits.conf）\n# エフェメラルポートの範囲\nsysctl net.ipv4.ip_local_port_range\n```\n\n### OS の調整（Windows 11）\n- 動的ポートの範囲は `netsh int ipv4 show dynamicport tcp` で確認できます。\n- 長時間の試験では、スリープ・省電力の設定を無効にしてから実行します。\n- ウイルス対策ソフトのリアルタイムスキャンが結果ファイルの書き込みを遅くする場合があります（除外設定は社内のルールに従ってください）。\n\n### 分散実行（参考）\n1 台で必要な負荷をかけられない場合は、JMeter の分散実行（コントローラ 1 台 + 負荷生成サーバー複数台）を利用します。各サーバーで `jmeter-server` を起動し、`jmeter -n -t output/api_test.jmx -R サーバー1,サーバー2` で実行します。CSV / Excel のデータファイルは各サーバーの同じパスに配置が必要です。詳細は JMeter 公式マニュアルの「Remote Testing」を参照してください。\n\n## 11.結果確認\n<!-- summary: 出力ファイルの場所と見方（HTML レポート・JTL・ログ） -->\n\n### run コマンドの出力先\n```text\nresult/api_test_20261011_103000/\n├─ result.jtl          全リクエストの結果（CSV 形式）\n├─ jmeter.log          JMeter の実行ログ\n├─ report/index.html   HTML ダッシュボードレポート\n├─ api_result.log      結果ログ（[任意] 結果ログ出力）\n├─ result_all.jtl      JTL（[任意] JTL出力 全件）\n└─ error_detail.xml    失敗したリクエストの詳細（[任意] エラー詳細出力。失敗がある場合のみ）\n```\n\n### HTML レポート（report/index.html）\n<!-- cols: 28,90 -->\n| 画面 | 確認するポイント |\n|---|---|\n| Dashboard | APDEX（応答の満足度）、成功 / 失敗の割合、Statistics（API ごとの件数・エラー率・平均・90/95/99 パーセンタイル・スループット）、Errors（エラーの種類） |\n| Charts → Over Time | 応答時間・スループットの時間推移（性能劣化やエラー急増のタイミング） |\n| Charts → Throughput | 1 秒あたりのリクエスト数、応答コード別の件数 |\n| Charts → Response Times | 応答時間の分布、パーセンタイル |\n\nJTL から HTML レポートを作り直す場合は `jmeter -g result.jtl -o report2` を実行します。\n\n### JTL（result.jtl）の主な列\n<!-- cols: 22,96 -->\n| 列 | 内容 |\n|---|---|\n| timeStamp | 開始時刻（エポックミリ秒） |\n| elapsed | 応答時間（ミリ秒） |\n| label | API 名（HTTP リクエストの名前） |\n| responseCode / responseMessage | HTTP ステータスとメッセージ |\n| threadName | スレッド名 |\n| success | 成否（true / false） |\n| failureMessage | 検証（Assertion）エラーの内容 |\n| bytes / sentBytes | 受信 / 送信バイト数 |\n| grpThreads / allThreads | 実行中のスレッド数 |\n| URL | リクエストの URL |\n| Latency / Connect / IdleTime | 最初の応答までの時間 / 接続時間 / 待機時間（ミリ秒） |\n\n### 結果ログ（api_result.log）\nタブ区切りのテキストで、1 リクエスト 1 行です。列は「日時・結果（OK / NG）・ステータス・応答時間ms・受信バイト・ラベル・リクエスト（メソッドと URL）・スレッド・メッセージ」です。失敗時（LOG_RESPONSE=all の場合は全件）は次の行に [REQUEST] / [RESPONSE] として送信内容と応答本文（LOG_MAX_CHARS 文字まで）を出力します。最終行には合計・成功・失敗件数が出力されます。\n\n### エラー詳細（error_detail.xml）\n失敗したリクエストだけを、リクエストヘッダ・本文とレスポンスヘッダ・本文付きで出力します。JMeter GUI の「結果ツリー（View Results Tree）」の「Filename」欄でこのファイルを開くと、内容を画面で確認できます。\n\n### jmeter.log\n- 「==== テスト開始」「==== テスト終了」の行に、実行条件と合計・成功・失敗件数が出力されます。\n- 失敗したリクエストは「[API NG]」で始まる警告として出力されます。\n- スクリプトのエラーは ERROR / WARN として出力されます。うまく動かない場合はまずこのファイルを確認してください。\n\n## 12.変数と関数\n<!-- summary: 生成される変数、よく使う関数、JSR223（Groovy）・抽出の書き方 -->\n\n### 生成される変数\n<!-- cols: 34,26,58 -->\n| 変数 | 設定する要素 | 内容 |\n|---|---|---|\n| `${PROTOCOL}` `${HOST}` `${PORT}` | 共通変数 | 接続先 |\n| `${SEQ}` | 連番 | 000001 から始まる連番（全スレッドで一意） |\n| `${RANDOM_NO}` | 乱数 | 1 〜 99999 の乱数 |\n| `${REQUEST_ID}` | 共通前処理 | リクエストごとの UUID |\n| `${TIMESTAMP}` / `${EPOCH_MS}` | 共通前処理 | 現在時刻（ISO 8601 形式 / エポックミリ秒） |\n| `${LAST_STATUS}` / `${LAST_ELAPSED_MS}` | 共通後処理 | 直前の API のステータスと応答時間 |\n| `${EXCEL_ROW_NO}` | Excelデータ行取得 | 使用中の Excel の行番号 |\n| CSV / Excel の列名 | CSVデータ読込 / Excelデータ行取得 | 1 行目の列名がそのまま変数名になる |\n\n### よく使う関数\n<!-- cols: 18,46,54 -->\n| 関数 | 記入例 | 結果 |\n|---|---|---|\n| `__P` | `${__P(THREADS,1)}` | プロパティの値（未指定なら既定値） |\n| `__UUID` | `${__UUID()}` | ランダムな UUID |\n| `__time` | `${__time(yyyyMMddHHmmss,)}` | 現在時刻（書式指定） |\n| `__Random` | `${__Random(1,100,)}` | 1 〜 100 の乱数 |\n| `__RandomString` | `${__RandomString(8,abcdef0123456789,)}` | 指定した文字からなるランダムな文字列 |\n| `__counter` | `${__counter(FALSE,)}` | 全スレッド共通の連番（TRUE にするとスレッドごと） |\n| `__threadNum` | `${__threadNum}` | スレッド番号 |\n| `__urlencode` | `${__urlencode(${KEYWORD})}` | URL エンコード |\n| `__digest` | `${__digest(SHA-256,${USER_ID},,,)}` | ハッシュ値 |\n| `__timeShift` | `${__timeShift(yyyy-MM-dd,,P1D,,)}` | 日付の計算（例: 翌日） |\n| `__groovy` | `${__groovy(vars.get('SEQ').toInteger() * 2,)}` | Groovy の式の結果 |\n| `__V` | `${__V(USER_${SEQ})}` | 変数名を組み立てて参照 |\n\n### JSR223（Groovy）の書き方\n```groovy\n// 変数の取得・設定（値は文字列）\nString userId = vars.get('USER_ID')\nvars.put('USER_ID_UPPER', userId.toUpperCase())\n\n// プロパティ（全スレッド共通）の取得・設定\nString host = props.getProperty('HOST', 'localhost')\nprops.put('SHARED_TOKEN', vars.get('AUTH_TOKEN'))\n\n// 直前の応答（後処理・リスナーで使用）\nString code = prev.getResponseCode()\ndef json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())\nvars.put('ORDER_ID', String.valueOf(json.data.id))\n\n// ログ出力（jmeter.log）\nlog.info('order id = ' + vars.get('ORDER_ID'))\n```\n- JSR223 のスクリプト内では `${変数名}` を使わず、`vars.get('変数名')` を使います（${} を使うとスクリプトのキャッシュが効かず、値によっては構文エラーになります）。\n- 言語は groovy、「Cache compiled script if available」はオンにします（生成した JMX は設定済み）。\n- vars はスレッドごと、props は全スレッド共通です。スレッドをまたいで値を共有する場合は props を使います。\n\n### 正規表現抽出の書き方\n<!-- cols: 40,78 -->\n| 抽出したいもの | 正規表現の例 |\n|---|---|\n| JSON の \"token\":\"abc\" の abc | `\"token\"\\s*:\\s*\"([^\"]+)\"` |\n| 数値の項目 \"id\": 123 の 123 | `\"id\"\\s*:\\s*(\\d+)` |\n| HTML の hidden 項目の値 | `name=\"csrf\" value=\"([^\"]+)\"` |\n| 応答ヘッダの値（GUI で対象を Response Headers に変更） | `Location: (.+)` |\n- ( ) で囲んだ部分が変数に入ります（テンプレート `$1$`）。見つからない場合は NOT_FOUND が入ります。\n- 一致したものをすべて取得するには、GUI で「Match No.」を -1 にします。`変数名_1`、`変数名_2` … と、件数を表す `変数名_matchNr` が作られます。\n\n### JSON 抽出（JSONPath）の書き方\n<!-- cols: 40,78 -->\n| 抽出したいもの | JSONPath |\n|---|---|\n| ルートの id | `$.id` |\n| 入れ子の値 | `$.data.user.name` |\n| 配列の先頭要素 | `$.items[0].id` |\n| 条件に一致する要素 | `$.items[?(@.status == 'active')].id` |\n| すべての id（Match No. を -1 にする） | `$..id` |\n\n## 13.トラブル対応\n<!-- summary: よくあるエラーと対処方法 -->\n<!-- cols: 36,36,48 -->\n| 症状 | 主な原因 | 対処 |\n|---|---|---|\n| `python3: command not found`（RHEL） | python3 が未導入 | `sudo dnf install -y python3` |\n| `$'\\r': command not found`（RHEL） | 改行コードが CRLF になっている | `sed -i 's/\\r$//' jmeter_api_tool.sh` |\n| このシステムではスクリプトの実行が無効になっている（Windows） | PowerShell の実行ポリシー | jmeter_api_tool.bat から実行する |\n| 日本語が文字化けする（コンソール） | 端末の文字コード | RHEL は `export LANG=ja_JP.UTF-8` など UTF-8 の端末を使用 |\n| JMeter が見つからない | JMETER_HOME が未設定 | 環境変数 JMETER_HOME を設定するか、--jmeter-home / -JMeterHome で指定 |\n| Java が見つからない・バージョンが古い | Java が未導入、PATH が未設定 | Java 17 をインストールし、JAVA_HOME と PATH を設定 |\n| `${USER_ID}` などがそのまま送信される | 変数を設定する要素が削除・無効、または変数名の誤り | 結果ツリーでリクエストを確認し、変数名と設定元の要素を見直す |\n| CSV の値が `<EOF>` になる | CSV の最終行に達した（csv_recycle=false） | csv_recycle=true にするか、ループ回数を見直す |\n| `File … must exist and be readable` | CSV ファイルが見つからない | CSV_FILE を JMX からの相対パス、または絶対パスで指定 |\n| 応答の日本語が文字化けする | 応答に文字コードの指定がない | JMeter 5.6.3 は既定で UTF-8。異なる場合は `-Jsampleresult.default.encoding=文字コード` |\n| Connection refused / Connect timed out | 接続先・ポートの誤り、ファイアウォール、プロキシ | URL を確認。プロキシ経由の場合は -H プロキシ -P ポート を追加（run は -- / -ExtraArgs で指定） |\n| SSLHandshakeException | TLS のバージョン・証明書の問題 | jmeter.log で詳細を確認。クライアント証明書が必要な場合は system.properties で keystore を設定 |\n| `java.lang.OutOfMemoryError` | ヒープ不足 | --heap / -Heap で増やす。CLI で実行し、結果ツリーを無効化 |\n| `BindException: Address already in use` | クライアント側のポート枯渇 | KeepAlive を有効（既定）にする、スレッド数を減らす、OS のポート範囲を広げる |\n| `Too many open files`（RHEL） | ファイルディスクリプタの上限 | `ulimit -n` で上限を引き上げる |\n| HTML レポートが作成されない | JTL が空、出力先フォルダが空でない | jmeter.log を確認。`jmeter -g result.jtl -o 新しいフォルダ` で再作成 |\n| Excel のデータが読み込まれない | ファイルパス・シート名の誤り、.xls 形式 | jmeter.log の [Excel] の行を確認。.xlsx 形式で保存する（.xls は非対応） |\n| `JSON の構文エラーです（YAML 形式は未対応です）`（generate） | OpenAPI 定義が YAML、または JSON の書式誤り | YAML は JSON に変換してから指定する。JSON はエラーメッセージの行・列を確認して修正 |\n| `Swagger 2.0 形式には対応していません`（generate） | Swagger 2.0（OpenAPI 2.0）の定義 | OpenAPI 3.0.x 形式に変換してから指定する |\n| `curl コマンドとして読めません`（add-curl） | 先頭が curl ではない、またはコマンドの貼り付け誤り | curl で始まるコマンドを指定する（ブラウザの「Copy as cURL」の内容をそのまま保存したファイルを --curl-file / -CurlFile で指定すると確実） |\n| `CSV の文字コード（Shift_JIS(CP932)）で表せない文字が含まれています`（add-curl） | Shift_JIS の CSV に、Shift_JIS に無い文字を追加しようとした | CSV を UTF-8 で保存し直してから実行する |\n| `jmeter_api_tool で生成した JMX ではありません`（generate -u） | このツールで生成していない JMX、または「[必須] メイン処理」の名前を変更した | このツールで生成した JMX を指定する（新しく作る場合は -u / -UpdateJmx を付けない） |\n| JMeter で変更した値が更新で元に戻った（generate -u） | 基準ファイル（JMX名.jmx.base.json）が無かった、または [競合] の項目だった | 表示された [競合] / [変更] を確認し、退避した .bak から値を戻す。基準ファイルは JMX と同じフォルダに残しておく |\n\n## 14.コマンド一覧\n<!-- summary: ツールと JMeter のコマンドラインオプション -->\n\n### ツールのコマンド\n<!-- cols: 12,46,46,30 -->\n| コマンド | RHEL 9.8（sh） | Windows 11（bat / ps1） | 説明 |\n|---|---|---|---|\n| init | `./jmeter_api_tool.sh init [-o フォルダ] [-f]` | `jmeter_api_tool.bat init [-OutDir フォルダ] [-Force]` | 入力テンプレートを作成（既定: input） |\n| generate | `./jmeter_api_tool.sh generate -i ファイル [-s 設定CSV] [-o フォルダ] [-n ファイル名] [--split] [-f] [-c OpenAPI用設定] [--seed N] [-u JMX [--dry-run]]` | `jmeter_api_tool.bat generate -i ファイル [-s 設定CSV] [-OutDir フォルダ] [-JmxName ファイル名] [-Split] [-Force] [-c OpenAPI用設定] [-Seed N] [-UpdateJmx JMX [-DryRun]]` | JMX を生成（既定: output）。OpenAPI 用のオプションは「6.OpenAPI定義から生成」、-u（既存の JMX の差分更新）は「8.JMXの更新」参照 |\n| add-curl | `./jmeter_api_tool.sh add-curl -i API一覧 (--curl-file ファイル / --curl \"curl …\" / -- curl …) [--name API名] [--dry-run]` | `jmeter_api_tool.bat add-curl -i API一覧 (-CurlFile ファイル / -Curl \"curl …\") [-ApiName API名] [-DryRun]` | curl コマンドを解析して API一覧に 1 行追加（「3.JMX生成」参照） |\n| linux-cmd | `./jmeter_api_tool.sh linux-cmd -t JMX [-o フォルダ]` | `jmeter_api_tool.bat linux-cmd -t JMX [-OutDir フォルダ]` | Linux サーバで実行するコマンドと説明を出力（「9.実行方法」参照） |\n| manual | `./jmeter_api_tool.sh manual [-o フォルダ]` | `jmeter_api_tool.bat manual [-OutDir フォルダ]` | 本書（xlsx / md）を出力（既定: docs） |\n| run | `./jmeter_api_tool.sh run -t JMX [オプション]` | `jmeter_api_tool.bat run -t JMX [オプション]` | CLI モードで実行（既定: result） |\n| help | `./jmeter_api_tool.sh help` | `jmeter_api_tool.bat help` | ヘルプを表示 |\n\n### JMeter の主なオプション\n<!-- cols: 24,94 -->\n| オプション | 説明 |\n|---|---|\n| -n | CLI（非 GUI）モードで実行 |\n| -t ファイル | 実行する JMX |\n| -l ファイル | 結果（JTL）の出力先 |\n| -j ファイル | ログ（jmeter.log）の出力先 |\n| -e | テスト終了後に HTML レポートを作成 |\n| -o フォルダ | HTML レポートの出力先（存在しないか空のフォルダ） |\n| -f | 既存の結果ファイル・レポートフォルダを削除してから実行 |\n| -g ファイル | 既存の JTL から HTML レポートだけを作成（-o と併用） |\n| -J名前=値 | JMeter プロパティを設定（${__P(名前,既定値)} で参照） |\n| -G名前=値 | 分散実行時に全サーバーへプロパティを設定 |\n| -D名前=値 | Java のシステムプロパティを設定 |\n| -q ファイル | 追加のプロパティファイルを読み込む |\n| -H ホスト / -P ポート | プロキシサーバーのホスト / ポート |\n| -R ホスト1,ホスト2 | 分散実行（指定したサーバーで実行） |\n| -L レベル | ログレベル（例: -LDEBUG） |\n| -v | バージョンを表示 |\n",
+ "manual_md": "# JMeter APIテスト 利用方法\n\n> 対象: Apache JMeter 5.6.3 ／ RHEL 9.8 ／ Windows 11 ／ ツール: jmeter_api_tool v@@VERSION@@（@@DATE@@ 出力）\n\n本書は、REST API の定義（URL・HTTPメソッド・クエリパラメータ・ヘッダ・リクエストボディ）を Excel または CSV に記入するか OpenAPI 定義（JSON）を指定して、JMeter のテスト計画ファイル（JMX）を自動生成して実行し、結果を確認するまでの手順をまとめたものです。\n\n## 1.概要\n<!-- summary: ツールでできること・ファイル構成・作業の流れ -->\n\n### このツールでできること\n- Excel / CSV に記入した API 定義、または OpenAPI 3.0.x の定義ファイル（JSON）から、JMeter 5.6.3 用の JMX ファイルを自動生成します（OpenAPI は「6.OpenAPI定義から生成」参照）。\n- curl コマンド（ブラウザの開発者ツールの「Copy as cURL」など）を解析して、API一覧（Excel / CSV）に 1 行追加できます（add-curl コマンド。「3.JMX生成」参照）。\n- JMeter GUI で調整した JMX を、API 定義（Excel / CSV / OpenAPI）の変更に合わせて、違う箇所だけ更新できます。更新する箇所は書き換える前に一覧で表示します（generate -u。「8.JMXの更新」参照）。\n- JMX を Linux サーバに持ち込んで JMeter の CLI で実行するためのコマンドと、各パラメータの説明をテキストファイル（JMX名_linux_cmd.txt）に出力します（「9.実行方法」参照）。\n- 生成される JMX には、API テストでよく使う要素（待機タイマ、連番・乱数、CSV / Excel データ読込、クッキー、前処理・後処理、正規表現 / JSON 抽出、応答の検証、結果出力）があらかじめ組み込まれています。\n- 既定は「1スレッド × 1回」の実行です。実行時のプロパティ指定（例: -JTHREADS=10 -JLOOPS=100）だけで、大量件数の負荷試験に切り替えられます。\n- 実行結果は JTL（CSV）、HTML レポート、jmeter.log、結果ログ（api_result.log）、エラー詳細（error_detail.xml）に出力されます。\n- 生成される要素の名前には [必須] / [任意] を付けています。[任意] の要素は JMeter GUI で右クリック →「Remove」で削除するだけで、他の要素に影響を与えずに取り除けます。\n\n### ファイル構成\n<!-- cols: 36,74 -->\n| パス | 内容 |\n|---|---|\n| jmeter_api_tool.sh | RHEL 9.8 用スクリプト（bash + python3 標準ライブラリのみ使用） |\n| jmeter_api_tool.ps1 | Windows 11 用スクリプト（Windows PowerShell 5.1 / PowerShell 7 で動作） |\n| jmeter_api_tool.bat | Windows 用の起動ファイル（実行ポリシーを一時的に回避して .ps1 を起動） |\n| input/api_definition.xlsx | 入力テンプレート（Excel）：「API一覧」「設定」「記入方法」シート |\n| input/api_definition.csv | 入力テンプレート（CSV）：API 一覧 |\n| input/api_definition_settings.csv | 入力テンプレート（CSV）：設定 |\n| input/openapi_config.csv | OpenAPI 定義（.json）から生成する場合の設定（接続先・HTTP ヘッダ・アクセストークン・定義の変数 ${public_base_url} / ${name_prefix} の値）。generate の -c / -OpenApiConfig で指定 |\n| output/api_test.jmx | 生成された JMX（サンプル） |\n| output/api_test_linux_cmd.txt | Linux サーバで JMeter の CLI を実行するコマンドと各パラメータの説明（サンプル。generate で JMX と一緒に出力） |\n| output/data/testdata.csv | CSV データ読込のサンプルデータ |\n| output/data/testdata.xlsx | Excel データ読込のサンプルデータ |\n| docs/JMeter_Usage_Guide.xlsx / .md | 本書（manual コマンドで出力） |\n| result/JMX名_日時/ | run コマンドの実行結果（JTL・ログ・HTML レポート） |\n\n### 作業の流れ\n1. テンプレートを作成する（init コマンド）\n2. API 定義と設定を記入する（Excel または CSV。curl コマンドから 1 行追加することもできます（add-curl）。OpenAPI 定義から生成する場合は「6.OpenAPI定義から生成」）\n3. JMX を生成する（generate コマンド）\n4. JMeter GUI で内容を確認し、不要な [任意] 要素を削除・調整する（API 定義を変更した場合は generate -u で JMX を差分だけ更新する）\n5. CLI モードで実行する（run コマンド。Linux サーバでは JMX と一緒に出力される「JMX名_linux_cmd.txt」のコマンド）\n6. 結果（HTML レポート・JTL・ログ）を確認する\n\n> ファイル名・フォルダ名はすべて英数字にしています。Windows と Linux の間でファイルを転送したときの文字化けを防ぐためです。\n\n## 2.環境構築\n<!-- summary: Java・JMeter 5.6.3 のインストールと動作確認（RHEL 9.8 / Windows 11） -->\n\n### 必要なソフトウェア\n<!-- cols: 18,30,30,40 -->\n| ソフトウェア | RHEL 9.8 | Windows 11 | 備考 |\n|---|---|---|---|\n| Java | java-17-openjdk（dnf） | JDK 17（Eclipse Temurin 等） | JMeter 5.6.3 は Java 8 以上で動作。17 を推奨 |\n| Apache JMeter | 5.6.3（.tgz） | 5.6.3（.zip） | https://archive.apache.org/dist/jmeter/binaries/ |\n| スクリプト実行環境 | bash・python3（OS 標準） | Windows PowerShell 5.1（OS 標準） | 追加のモジュール・ライブラリは不要 |\n| Excel | 不要 | 不要（記入・閲覧には推奨） | xlsx の読み書きはスクリプト自身が行います |\n\n### RHEL 9.8 へのインストール\n```bash\n# Java 17（GUI を使わないサーバーなら java-17-openjdk-headless でも可）\nsudo dnf install -y java-17-openjdk\njava -version\n\n# JMeter 5.6.3（ダウンロード・チェックサム確認・展開）\ncd /opt\nsudo curl -LO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz\nsudo curl -LO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz.sha512\nsha512sum -c apache-jmeter-5.6.3.tgz.sha512\nsudo tar xzf apache-jmeter-5.6.3.tgz\n\n# 環境変数（~/.bashrc に追記）\necho 'export JMETER_HOME=/opt/apache-jmeter-5.6.3' >> ~/.bashrc\necho 'export PATH=$JMETER_HOME/bin:$PATH' >> ~/.bashrc\nsource ~/.bashrc\njmeter -v\n```\n- python3 は RHEL 9 のパッケージ管理（dnf）が使用しているため、通常は導入済みです（確認: `python3 --version`）。無い場合は `sudo dnf install -y python3` で導入します。\n- ツールのファイルを Windows から転送して改行コードが CRLF になった場合は、`sed -i 's/\\r$//' jmeter_api_tool.sh` で LF に戻してください。\n- GUI を使う場合に日本語が □ で表示されるときは、日本語フォントを導入します（例: `sudo dnf install -y google-noto-sans-cjk-ttc-fonts`）。\n\n### Windows 11 へのインストール\n1. JDK 17 をインストールします（例: Eclipse Temurin 17 の .msi。インストール時に「JAVA_HOME 変数の設定」と「PATH への追加」を有効にします）。\n2. https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.zip をダウンロードし、ファイルのプロパティで「許可する（ブロック解除）」にチェックしてから、C:\\apache-jmeter-5.6.3 などスペースや日本語を含まないフォルダに展開します。\n3. 環境変数 JMETER_HOME に展開先のフォルダを設定します（下記のコマンド、または「システムの詳細設定」→「環境変数」）。\n4. PowerShell を開き直して動作を確認します。\n\n```powershell\n[Environment]::SetEnvironmentVariable('JMETER_HOME', 'C:\\apache-jmeter-5.6.3', 'User')\n# PowerShell を開き直してから確認\njava -version\n& \"$env:JMETER_HOME\\bin\\jmeter.bat\" -v\n```\n\n### ツールの配置と動作確認\nツール一式を任意のフォルダ（例: RHEL は ~/JMeter_API_Generate、Windows は C:\\work\\JMeter_API_Generate）に配置し、ヘルプが表示されることを確認します。\n\n```bash\n# RHEL 9.8\ncd ~/JMeter_API_Generate\nchmod +x jmeter_api_tool.sh\n./jmeter_api_tool.sh help\n```\n\n```powershell\n# Windows 11（PowerShell またはコマンドプロンプト）\ncd C:\\work\\JMeter_API_Generate\n.\\jmeter_api_tool.bat help\n```\n- jmeter_api_tool.bat は PowerShell の実行ポリシー（既定では .ps1 の実行が禁止）を、その実行に限って回避して起動します。PowerShell から直接実行する場合は `powershell -ExecutionPolicy Bypass -File .\\jmeter_api_tool.ps1 help` としてください。\n- インターネットから取得した ZIP を展開した場合は、事前に `Get-ChildItem -Recurse | Unblock-File` でブロックを解除しておくと確実です。\n\n## 3.JMX生成\n<!-- summary: テンプレート作成から JMX 生成・GUI での確認までの手順 -->\n\n### 手順1：テンプレートを作成する\n```bash\n./jmeter_api_tool.sh init          # RHEL 9.8\n```\n```powershell\n.\\jmeter_api_tool.bat init         # Windows 11\n```\ninput フォルダに次の 4 ファイルが作成されます（既存ファイルは上書きしません。上書きする場合は -f / -Force を付けます）。\n- api_definition.xlsx（Excel 形式のテンプレート）\n- api_definition.csv（CSV 形式：API 一覧）\n- api_definition_settings.csv（CSV 形式：設定）\n- openapi_config.csv（CSV 形式：OpenAPI 定義から生成する場合の接続先・HTTP ヘッダ・アクセストークン・定義の変数 ${public_base_url} / ${name_prefix} の値。generate の -c / -OpenApiConfig で指定）\n\n### 手順2：API 定義を記入する\n- Excel 形式：「API一覧」シートに 1行 = 1API で記入し、「設定」シートの「設定値」列で全体設定を変更します。\n- CSV 形式：api_definition.csv に API を、api_definition_settings.csv に設定を記入します。\n- テンプレートには記入例として、postman-echo.com（送信した内容をそのまま返す公開サービス）を呼び出す 4 件の API が入っています。自分の API に書き換えてください。\n- 入力項目の詳細は「4.入力項目_設定」「5.入力項目_API」シートを参照してください。\n\n> CSV を Excel で保存する場合は「CSV UTF-8（コンマ区切り）」を選んでください。Shift_JIS の「CSV（コンマ区切り）」で保存したファイルも自動判別して読み込めます。\n\n### curl コマンドから API を追加する（add-curl）\nブラウザの開発者ツール（ネットワーク → 右クリック →「Copy as cURL」）や API の仕様書にある curl コマンドを解析して、API一覧に追加します（1 コマンド = 1 行。「Copy all as cURL」でコピーした複数のコマンドもまとめて追加できます）。Excel は「API一覧」シートの最後の API の次の行（空白行）に、CSV はファイルの末尾に追加します。元のファイルは「ファイル名.日時.bak」に退避してから書き換えます。\n\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh add-curl -i input/api_definition.xlsx --curl-file curl.txt\n./jmeter_api_tool.sh add-curl -i input/api_definition.csv --name 注文登録 -- curl -X POST https://api.example.com/v1/orders -H 'Content-Type: application/json' -d '{\"item\":\"A001\"}'\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat add-curl -i input\\api_definition.xlsx -CurlFile curl.txt\n.\\jmeter_api_tool.bat add-curl -i input\\api_definition.csv -CurlFile curl.txt -ApiName 注文登録 -DryRun\n```\n\n<!-- cols: 24,28,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -i ファイル | -InputFile（-i） | 追加先の API一覧（.xlsx / .csv）。必須 |\n| --curl-file ファイル | -CurlFile ファイル | curl コマンドを書いたテキストファイル（コピーした内容をそのまま保存したもの。行末の \\ ・ ^ ・ ` で改行した複数行のコマンド、複数のコマンドも可） |\n| --curl \"curl …\" | -Curl \"curl …\" | curl コマンドを文字列で指定（\" を含むコマンドは --curl-file / -CurlFile で指定してください） |\n| -- curl … | （なし） | -- の後ろに curl コマンドをそのまま書く（sh のみ） |\n| --name API名 | -ApiName API名 | API名（省略時は「メソッド パス」。例: POST /v1/orders。複数のコマンドを追加する場合は、すべての行に同じ API名を設定） |\n| --dry-run | -DryRun | 追加する行を表示するだけで、ファイルは書き換えない |\n\n<!-- cols: 40,78 -->\n| curl のオプション | API一覧に設定する値 |\n|---|---|\n| URL | URL（スキーム・ホスト・ポート・パス）とクエリパラメータ（? 以降を 1 行 1 つ。%XX は元の文字に戻す）。スキームが無い場合は http |\n| -X / --request | メソッド（省略時は -d・-F があれば POST、-G は GET、-I は HEAD、-T は PUT、それ以外は GET） |\n| -H / --header | ヘッダ（1 行 1 つ）。Content-Length・Transfer-Encoding は JMeter が自動で付けるため追加しない |\n| -d / --data / --data-raw / --data-binary / --data-urlencode / --json | リクエストボディ。名前=値 の形式は form、JSON は json、それ以外は raw（-G を付けた場合はクエリパラメータ。@ファイル はファイルの内容） |\n| -F / --form / --form-string | multipart のボディ（名前=値）。ファイルの送信（名前=@ファイル）は追加しないため、JMeter の「Files Upload」タブで設定する |\n| -u / --user、URL の ユーザー:パスワード@ | ヘッダ Authorization: Basic …（パスワードが無い場合は作らない） |\n| --oauth2-bearer | ヘッダ Authorization: Bearer … |\n| -b / --cookie、-A / --user-agent、-e / --referer | ヘッダ Cookie / User-Agent / Referer（-b ファイル名 は読み込まない） |\n| -s・-L・-k・--compressed など | JMeter の HTTP リクエストに関係しないため無視する（-x プロキシ・--cert など JMeter で別に設定するものは、設定方法を警告で表示して無視） |\n\n- 複数の curl コマンドを改行・;・&（&& / ||）で区切って並べると、コマンドごとに 1 行ずつ、上から順に追加します（ブラウザの「Copy all as cURL」の bash 形式は ;、cmd 形式は & で区切られています）。| の後ろの jq など curl 以外のコマンドと、--next 以降のリクエストは読みません。\n- No は既存の No の最大値 + 1 から順に付け、有効は Y、備考は「curl コマンドから追加」です。Excel は書式（罫線・折り返し）を上の行から引き継ぎ、行の高さを内容に合わせます。\n- CSV は元の文字コード（UTF-8 / UTF-8（BOM 付き）/ Shift_JIS / UTF-16）と改行コードのまま追記します。Shift_JIS で表せない文字を含む場合はエラーになるため、CSV を UTF-8 で保存し直してください。\n- 追加した後は generate で JMX を生成します。生成済みの JMX がある場合は generate -u で、追加した API だけを JMX に追加できます（「8.JMXの更新」参照）。\n\n### 手順3：JMX を生成する\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx\n./jmeter_api_tool.sh generate -i input/api_definition.csv -s input/api_definition_settings.csv\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx\n.\\jmeter_api_tool.bat generate -i input\\api_definition.csv -s input\\api_definition_settings.csv\n```\n\n<!-- cols: 22,30,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -i ファイル | -InputFile（-i） | 入力ファイル（.xlsx / .csv、OpenAPI 定義は .json）。必須 |\n| -s ファイル | -SettingsFile（-s） | 設定 CSV。省略時は「入力ファイル名_settings.csv」を探し、無ければ既定値を使用（Excel 入力時は「設定」シートを使用） |\n| -o フォルダ | -OutDir（-o） | 出力先フォルダ（既定: output） |\n| -n ファイル名 | -JmxName（-n） | 出力する JMX のファイル名（例: order_test.jmx）。設定「出力JMXファイル名」（output_file）より優先します |\n| --split | -Split | API ごとに別々の JMX を出力する |\n| -f | -Force（-f） | サンプルデータ（data/testdata.csv / .xlsx）が既にあっても上書きする |\n| -u JMX | -UpdateJmx（-u） | 新しい JMX を作らずに、既存の JMX を入力ファイルとの差分だけ更新する（「8.JMXの更新」参照） |\n| --dry-run | -DryRun | -u と併用: 更新箇所を表示するだけで、ファイルは書き換えない |\n| -c ファイル など | -OpenApiConfig（-c） など | OpenAPI 定義（.json）用のオプション（「6.OpenAPI定義から生成」参照） |\n\n### 生成されるファイル\n<!-- cols: 34,84 -->\n| ファイル | 説明 |\n|---|---|\n| output/出力JMXファイル名 | 生成された JMX。同名のファイルがある場合は「.日時.bak」を付けて退避してから作成します |\n| output/JMX名_linux_cmd.txt | Linux サーバで JMeter の CLI を実行するコマンドと各パラメータの説明（「9.実行方法」参照。JMX名は .jmx を除いた名前）。--split の場合は JMX ごとに出力します |\n| output/出力JMXファイル名.base.json | JMX の更新（generate -u）で使う基準ファイル（生成した内容の控え）。JMX と同じフォルダに置いたままにしてください（--split の場合は作成しません） |\n| output/data/testdata.csv | CSV データ読込用のサンプル（ファイルが無い場合のみ作成） |\n| output/data/testdata.xlsx | Excel データ読込用のサンプル（ファイルが無い場合のみ作成） |\n\n### 手順4：JMeter GUI で確認・調整する\n- RHEL（デスクトップ環境あり）：`jmeter -t output/api_test.jmx`\n- Windows：`%JMETER_HOME%\\bin\\jmeter.bat` をダブルクリックし、「File」→「Open」で JMX を選択\n- 不要な [任意] 要素は右クリック →「Remove」で削除、一時的に外す場合は右クリック →「Disable」で無効化できます。\n- GUI モードは動作確認・デバッグ用です。負荷試験は必ず CLI モード（run コマンド）で実行してください。\n\n## 4.入力項目_設定\n<!-- summary: 「設定」シート（設定 CSV）の全項目と既定値 -->\n「設定」シート（CSV の場合は api_definition_settings.csv）の項目です。設定値が空欄の項目は既定値が使われます。\n\n- ON / OFF / DISABLE の項目は、ON = 生成して有効、OFF = 生成しない、DISABLE = 生成するが無効化（GUI で右クリック →「Enable」ですぐ使える）を表します。\n- 説明欄の「-J名前」は、実行時に -J名前=値（run コマンドでは -J 名前=値 / -Prop 名前=値）で値を変更できることを表します。\n- 数値の設定が範囲外の場合（threads・throughput_per_min が 1 未満、loops が -1 未満、それ以外が 0 未満など）と、random_min が random_max より大きい場合は、警告を表示して既定値を使います。\n\n<!-- @SETTINGS_TABLE@ -->\n\n## 5.入力項目_API\n<!-- summary: 「API一覧」シート（API CSV）の列と記入ルール -->\n「API一覧」シート（CSV の場合は api_definition.csv）の列です。1行 = 1API で、上から順に実行されます。\n\n<!-- @API_COLUMNS_TABLE@ -->\n\n### 記入のルール\n- 複数の値を書く列（クエリパラメータ、ヘッダ、正規表現抽出など）は、セル内改行（Excel では Alt + Enter）で区切ります。クエリパラメータと form 形式のボディは & 区切りでも記入できます。\n- 先頭の列（No）が # で始まる行はコメントとして読み飛ばします（テンプレートの 4 行目の記入説明など）。\n- URL・パラメータ・ヘッダ・ボディには ${変数名} で JMeter の変数・関数を埋め込めます（例: `${USER_ID}`、`${SEQ}`、`${__UUID()}`）。\n- 「有効」を N にした API は、生成はされますが無効化された状態になります。\n- GET のクエリパラメータは HTTP リクエストの「Parameters」タブに設定されます。それ以外のメソッドの場合は URL のパスに付与されます（値は UTF-8 で URL エンコード。${...} の部分はそのまま）。JMeter 5.6.3 は DELETE の「Parameters」を URL とボディの両方に送り、HEAD / TRACE の「Parameters」は送らないためです。\n- URL に書いたクエリ（? 以降）の + は空白として扱います（%20 にして送信）。\n- 名前か値に %XX（%E3%83%86 など）を含む組は URL エンコード済みとして扱い、残りの文字（空白・日本語など）だけをエンコードします（二重にエンコードしません）。%XX を含まない組は JMeter がエンコードします。\n- multipart のボディは、%XX を元の文字に戻した値をそのまま送信します。\n- リクエストボディは記入したとおり（前後の空白・改行を含めて）送信します。空白だけのセルは空欄として扱います。\n- GET / DELETE / HEAD / OPTIONS / TRACE ではリクエストボディは使用できません（指定した場合は警告を表示して無視します）。\n- URL は http / https（${PROTOCOL} のような変数も可）とホスト名が必要です。ホスト名が無い・ポート番号が 1～65535 でないなど、正しくない URL の API は警告を表示してスキップします。URL の「ユーザー名:パスワード@」は送信されないため、警告を表示して取り除きます（Basic 認証はヘッダに Authorization: Basic … を記入してください）。\n- ヘッダに Cookie を書いた場合、クッキー管理（設定 cookie_manager）が有効でその URL へ送るクッキー（設定 cookies・応答の Set-Cookie）があると、JMeter はヘッダの Cookie をそのクッキーで置き換えます（生成時に警告を表示します）。クッキーは設定 cookies に記入してください。\n- CSV の引用符（\"）が閉じられていない場合や、Excel の「API一覧」「設定」シートに計算結果の無い数式・エラー値（#N/A など）のセルがある場合は、値が欠けたまま生成しないようエラーにします。\n\n### ボディ形式（auto の場合の自動判定）\n<!-- cols: 26,16,76 -->\n| 本文の内容 | 判定 | 送信方法 |\n|---|---|---|\n| { または [ で始まる | json | 本文をそのまま送信。Content-Type が未指定なら application/json を付与 |\n| < で始まる | raw（XML） | 本文をそのまま送信。Content-Type が未指定なら application/xml を付与 |\n| 名前=値 の形式（改行 / & 区切り） | form | パラメータとして送信（application/x-www-form-urlencoded） |\n| 上記以外 | raw | 本文をそのまま送信（Content-Type はヘッダ列で指定） |\n\n- ボディ形式は auto のほか、json / form / raw / xml（本文をそのまま送信。Content-Type が未指定なら application/xml を付与）/ multipart（名前=値 を multipart/form-data のテキスト項目として送信）を指定できます。\n\n## 6.OpenAPI定義から生成\n<!-- summary: OpenAPI 定義（JSON）から JMX を生成する手順・変換ルール・OpenAPI 用設定ファイル -->\ngenerate コマンドの -i に OpenAPI 3.0.x の定義ファイル（JSON、拡張子 .json）を指定すると、定義の各操作（パスとメソッドの組）を「API一覧」と同じ 1行 = 1API に変換してから JMX を生成します。API は定義に書かれた順番に実行されます。\n\n### 生成手順\n```bash\n# RHEL 9.8\n./jmeter_api_tool.sh generate -i openapi.json\n./jmeter_api_tool.sh generate -i openapi.json -c input/openapi_config.csv --seed 12345\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i openapi.json\n.\\jmeter_api_tool.bat generate -i openapi.json -c input\\openapi_config.csv -Seed 12345\n```\n\n<!-- cols: 24,28,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -c ファイル | -OpenApiConfig（-c） | OpenAPI 用設定ファイル（下記）。省略時は各項目の既定値を使用 |\n| --seed 数 | -Seed 数 | テストデータの乱数シード（0 以上の整数・12 桁以内）。同じ値なら同じテストデータを再生成します。省略時は毎回ランダム（使ったシードは生成時に表示） |\n| --any-method メソッド | -AnyMethod メソッド | x-amazon-apigateway-any-method（ANY）の API で送るメソッド（GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS / TRACE。既定: GET） |\n| --required-only | -RequiredOnly | 必須（required）のパラメータ・プロパティ・リクエストボディだけを生成 |\n| --use-examples | -UseExamples | example / default があればランダム値より優先して使用 |\n| --placeholder-value 数値 | -PlaceholderValue 数値 | 値の位置に引用符なしで書かれた ${...}（JSON として読めない部分）に仮に入れる数値（既定: 3000） |\n\n- -s（設定ファイル）・-o・-n・--split・-f の使い方は Excel / CSV と同じです。-s を省略した場合は「入力ファイル名_settings.csv」があれば読み込み、無ければ既定値を使います。\n- 対象は OpenAPI 3.0.x の JSON です（3.1 など 3.0.x 以外は警告を表示し、3.0.x と共通の項目だけを解釈します）。YAML・Swagger 2.0・外部ファイルへの $ref には対応していません（YAML は JSON に変換してから指定してください）。\n\n### API一覧への変換ルール\n<!-- cols: 24,94 -->\n| API一覧の列 | OpenAPI 定義から設定する値 |\n|---|---|\n| No / 有効 / API名 | 定義の順番 / Y / 「メソッド パス [operationId]」（ANY は「ANY(GET) パス」） |\n| メソッド / URL | 操作のメソッドとパス。パスパラメータはデータ型に合ったランダム値（style: simple / label / matrix と explode に従い、区切り文字以外を URL エンコード）。接続先とパスの先頭は設定 base_url（operation / path に servers がある場合はその接続先） |\n| クエリパラメータ | in: query のパラメータ（style / explode に従って展開。explode しない配列・オブジェクトと spaceDelimited / pipeDelimited は、各値を URL エンコードしてから区切り文字でつなぐ。content で定義したパラメータは JSON などの文字列） |\n| ヘッダ | Content-Type（リクエストボディの形式）、Accept（成功応答の形式）、in: header / in: cookie のパラメータ、OpenAPI 用設定 API_HEADERS の値（同じ名前のヘッダは API_HEADERS の値を使用） |\n| ボディ形式 / リクエストボディ | requestBody の定義から生成（JSON → json、application/x-www-form-urlencoded → form（encoding の style / explode に対応）、multipart/form-data → multipart、XML → xml、テキストなど → raw） |\n| 期待ステータス | 2xx の応答コード（カンマ区切り。2XX だけの場合は空欄） |\n| 備考 | 概要・説明・operationId・認可（security）・API Gateway 統合（x-amazon-apigateway-integration）・乱数シードなど |\n\n- パラメータ・リクエストボディの値は、データ型・format・pattern・minimum / maximum・enum などの定義からランダムに生成します。生成の規則は JMeter_Tools の openapi2jmx と同じで、同じシードなら同じ値になります。\n- 待機時間は設定 default_wait_ms を使います。正規表現抽出・JSON抽出・前処理・後処理・応答検証文字列・応答時間上限は生成しないため、必要に応じて JMeter GUI で追加してください。\n- 認証ヘッダ（Authorization・API-Key）はランダム値では通らないため、OpenAPI 定義のパラメータからは生成しません。Authorization は設定 common_headers、または OpenAPI 用設定ファイルの HEADERS / TOKEN_DIR で、API-Key は API_HEADERS で指定します（API_HEADERS の既定値の API-Key: XXXXXXX は実際のキーに書き換えてください）。指定が無い場合は生成時に警告を表示します。\n- GET / DELETE / HEAD / OPTIONS / TRACE のリクエストボディは、Excel / CSV と同じ規則で送信しません（警告を表示します）。\n- operation または path に servers がある場合は、その servers[0].url をその API の接続先にします（相対 URL はドキュメントの接続先のホストを使います）。設定ファイル（-s）で base_url を指定した場合は、すべての API をその接続先に送ります。OpenAPI 用設定の PROTOCOL / HOST / PORT は operation / path の servers にも反映します。\n- in: cookie のパラメータはヘッダ Cookie に設定します。クッキー管理（設定 cookie_manager）が有効でクッキーがあると JMeter が置き換えるため、生成時に警告を表示します。\n- 設定ファイルで空欄の base_url（servers[0].url。無い場合は http://localhost:8080）・test_plan_name（「タイトル APIのバージョン（OpenAPI のバージョン）」）・output_file（「タイトル.jmx」）は OpenAPI 定義の値を使います（output_file は -n / -JmxName が優先）。\n- 共通ヘッダ・クッキー・連番・CSV / Excel データ読込・結果出力などの要素は、Excel / CSV から生成する場合と同じく設定（「4.入力項目_設定」）に従って生成されます。CSV / Excel データ読込は既定で ON のため、サンプルデータ（data/testdata.csv / .xlsx）も作成されます。使わない場合は設定 csv_data / excel_data を OFF にしてください。\n\n### OpenAPI 用設定ファイル（openapi_config.csv）\nOpenAPI 定義から生成する場合だけ使う設定ファイルです。init で作成される input/openapi_config.csv（列は設定 CSV と同じ）の「設定値」を記入し、generate の -c / -OpenApiConfig で指定します。設定値が空欄の項目は使われず（API_HEADERS は既定値を使用）、テンプレートのままなら -c を指定しない場合と同じ JMX になります。記入した項目は、設定ファイル（-s）・OpenAPI 定義の値より優先します。\n\n<!-- @OPENAPI_CONFIG_TABLE@ -->\n\n- PROTOCOL / HOST / PORT は、記入した項目だけ base_url と operation / path の servers の接続先を置き換え、パス（例: /v1）はそのまま使います。PORT が空欄の場合はポート番号を付けません（http は 80 / https は 443 で接続）。実行時の -JPROTOCOL= / -JHOST= / -JPORT= も使えます。\n- API_HEADERS の値は各 API のヘッダ（API ごとの HTTP Header Manager）の初期値です。生成後は JMeter で API ごとに変更でき、HEADERS（共通ヘッダ）と同じ名前のヘッダは実行時に API 側が優先されます。\n- TOKEN_DIR を指定すると、共通ヘッダに Authorization: Bearer ${ACCESS_TOKEN} を追加し、JMeter の実行中に API を呼び出すたびに、フォルダ直下の *.token のうち更新日時が最も新しいファイルの内容（前後の空白・改行・BOM を除く）を ${ACCESS_TOKEN} に設定します。トークンは JMX に書き込まず、実行時に読み込みます。\n- 新しい .token ファイルを置く・ファイルを書き換えると、実行中でも次の API 呼び出しから切り替わります（フォルダの確認は 1 秒に 1 回）。拡張子が .token 以外のファイルは使いません。生成時には、そのとき最新の .token ファイル（またはフォルダ・ファイルが無いことの警告）を表示します。\n- TOKEN_DIR の区切りは \\ と / のどちらでも可、相対パスは JMX のフォルダ基準です。Windows と Linux のフォルダを ; で区切って書くと、実行する環境に存在する方を使うため、同じ JMX を両方で使えます（例: C:\\work\\tokens;/home/user/tokens）。実行時に -JACCESS_TOKEN_DIR=フォルダ で変更することもできます。\n- PUBLIC_BASE_URL / NAME_PREFIX は OpenAPI 定義（servers[0].url・info.title）に入れる値です。未設定（空欄）の場合は ${public_base_url} / ${name_prefix} を取り除くため、パスの先頭やテストプラン名・JMX のファイル名に ${...} は残りません（例: ${name_prefix}-orders-api → orders-api）。設定ファイル（-s）で base_url / test_plan_name / output_file を指定した場合は、その設定の値を使います。\n\n## 7.JMX構成\n<!-- summary: 生成される JMX の要素一覧と、削除してよいかの判断基準 -->\n生成される JMX のツリー構成です（記入例を生成した場合）。名前が [必須] の要素は削除しないでください。[任意] の要素は、他の要素に影響を与えずに削除できます。\n\n```text\nテストプラン\n├─ [必須] 共通変数 (User Defined Variables)\n├─ [任意] HTTPリクエスト初期値 (HTTP Request Defaults)\n├─ [任意] 共通ヘッダ (HTTP Header Manager)\n├─ [任意] クッキー管理 (HTTP Cookie Manager)\n├─ [任意] 事前処理 (setUp Thread Group)\n│   ├─ [任意] テスト開始処理 (JSR223 Sampler)\n│   └─ [任意] Excelデータ読込 (JSR223 Sampler)\n├─ [必須] メイン処理 (Thread Group)\n│   ├─ [任意] 連番 SEQ (Counter)\n│   ├─ [任意] 乱数 RANDOM_NO (Random Variable)\n│   ├─ [任意] CSVデータ読込 (CSV Data Set Config)\n│   ├─ [任意] Excelデータ行取得 (JSR223 PreProcessor)\n│   ├─ [任意] 共通前処理 (JSR223 PreProcessor)\n│   ├─ [任意] 共通後処理 (JSR223 PostProcessor)\n│   ├─ [任意] スループット制御 (Constant Throughput Timer) ※既定は無効\n│   ├─ API01_ログイン(POST JSON)  ← HTTP リクエスト（1API = 1つ）\n│   │   ├─ [任意] API01 ヘッダ (HTTP Header Manager)\n│   │   ├─ [任意] API01 待機 500ms (Constant Timer)\n│   │   ├─ [任意] API01 前処理 (JSR223 PreProcessor)\n│   │   ├─ [任意] API01 正規表現抽出 ECHO_URL (Regular Expression Extractor)\n│   │   ├─ [任意] API01 JSON抽出 AUTH_TOKEN (JSON Extractor)\n│   │   ├─ [任意] API01 後処理 (JSR223 PostProcessor)\n│   │   ├─ [任意] API01 ステータス検証 200 (Response Assertion)\n│   │   ├─ [任意] API01 応答本文検証 (Response Assertion)\n│   │   └─ [任意] API01 応答時間検証 5000ms (Duration Assertion)\n│   ├─ API02_商品検索(GET) / API03_注文登録(POST form) / API04_クッキー確認(GET)\n│   └─ [任意] 変数確認 (Debug Sampler) ※既定は無効\n├─ [任意] 事後処理 (tearDown Thread Group)\n│   └─ [任意] テスト終了処理 (JSR223 Sampler)\n├─ [任意] 結果ツリー (View Results Tree)\n├─ [任意] 集計レポート (Summary Report)\n├─ [任意] 統計レポート (Aggregate Report)\n├─ [任意] JTL出力 全件 (Simple Data Writer)\n├─ [任意] エラー詳細出力 XML (Simple Data Writer)\n└─ [任意] 結果ログ出力 (JSR223 Listener)\n```\n\n### 要素の役割と削除時の影響\n<!-- cols: 30,28,52,44 -->\n| 要素 | JMeter の要素 | 役割 | 削除したときの影響 |\n|---|---|---|---|\n| [必須] 共通変数 | User Defined Variables | 接続先（PROTOCOL / HOST / PORT）と共通変数を定義。値は `${__P(名前,既定値)}` 形式で、実行時に -J で変更可能 | 削除不可（各 API が ${HOST} 等を参照） |\n| [任意] HTTPリクエスト初期値 | HTTP Request Defaults | 文字コードと接続 / 応答タイムアウト（CONNECT_TIMEOUT / RESPONSE_TIMEOUT） | タイムアウトが無制限になる |\n| [任意] 共通ヘッダ | HTTP Header Manager | 全 API に付与するヘッダ（設定 common_headers） | 共通ヘッダが送信されない |\n| [任意] クッキー管理 | HTTP Cookie Manager | 応答の Set-Cookie を保存し、以降のリクエストで送信。事前設定クッキーも送信 | クッキーが送信されない（セッションを使う API は失敗） |\n| [任意] 事前処理 | setUp Thread Group | テスト開始前に 1 回だけ実行する処理の入れ物 | 配下の処理（Excel 読込など）も削除される |\n| [任意] テスト開始処理 | JSR223 Sampler | 実行条件をログに出力し、集計値をリセット | 開始ログが出ない（動作には影響なし） |\n| [任意] Excelデータ読込 | JSR223 Sampler | Excel（.xlsx）をメモリに読み込む（Apache POI 不要）。読み込めない場合は失敗として記録し、テストを停止する | Excel の値が変数に設定されない（「Excelデータ行取得」も無効化・削除する） |\n| [必須] メイン処理 | Thread Group | API を実行する。THREADS / RAMP_UP / LOOPS（/ DURATION）で制御 | 削除不可 |\n| [任意] 連番 | Counter | 反復ごとに連番を ${SEQ} に設定（全スレッドで一意） | ${SEQ} が未定義になる |\n| [任意] 乱数 | Random Variable | 反復ごとに乱数を ${RANDOM_NO} に設定 | ${RANDOM_NO} が未定義になる |\n| [任意] CSVデータ読込 | CSV Data Set Config | CSV を 1 反復につき 1 行読み込み、列を変数に設定 | CSV の変数が未定義になる |\n| [任意] Excelデータ行取得 | JSR223 PreProcessor | Excel データから反復ごとに 1 行を取り出して変数に設定 | Excel の変数が未定義になる |\n| [任意] 共通前処理 | JSR223 PreProcessor | 全 API の直前に実行。${REQUEST_ID} ${TIMESTAMP} ${EPOCH_MS} を生成 | 左記の変数が未定義になる |\n| [任意] 共通後処理 | JSR223 PostProcessor | 全 API の直後に実行。${LAST_STATUS} ${LAST_ELAPSED_MS} を設定 | 左記の変数が未定義になる |\n| [任意] スループット制御 | Constant Throughput Timer | 1 分あたりの目標リクエスト数（THROUGHPUT）に調整。既定は無効 | なし |\n| APIxx_名前 | HTTP Request | API 定義 1 行分のリクエスト | その API が実行されない（配下の要素も削除される） |\n| [任意] APIxx ヘッダ | HTTP Header Manager | その API だけに付けるヘッダ | そのヘッダが送信されない |\n| [任意] APIxx 待機 | Constant Timer | API 呼び出し前の待機時間 | 待機しなくなる |\n| [任意] APIxx 前処理 / 後処理 | JSR223 PreProcessor / PostProcessor | API ごとの前処理・後処理（Groovy） | その処理が行われない |\n| [任意] APIxx 正規表現抽出 / JSON抽出 | Regular Expression Extractor / JSON Extractor | 応答から値を取り出して変数に設定 | 後続の API でその変数が未定義になる |\n| [任意] APIxx ステータス検証 / 応答本文検証 / 応答時間検証 | Response Assertion / Duration Assertion | 応答の検証。失敗はエラーとして集計 | 検証されなくなる |\n| [任意] 変数確認 | Debug Sampler | 変数の一覧を結果ツリーに表示（デバッグ用）。既定は無効 | なし |\n| [任意] 事後処理 / テスト終了処理 | tearDown Thread Group / JSR223 Sampler | 合計・成功・失敗件数をログに出力し、結果ログを閉じる | 終了時のサマリが出ない |\n| [任意] 結果ツリー / 集計レポート / 統計レポート | View Results Tree / Summary Report / Aggregate Report | GUI での結果確認用（ファイル出力なし） | GUI で結果が見られない（CLI 実行には影響なし） |\n| [任意] JTL出力 全件 | Simple Data Writer | 全リクエストの結果を result_all.jtl（CSV）に出力 | JTL が出力されない（run コマンドは別途 result.jtl を出力） |\n| [任意] エラー詳細出力 XML | Simple Data Writer | 失敗したリクエストのみ、リクエスト・レスポンス全文を error_detail.xml に出力 | エラー詳細が出力されない |\n| [任意] 結果ログ出力 | JSR223 Listener | 1 リクエスト 1 行の結果ログ api_result.log を出力 | 結果ログが出力されない |\n\n### 記入例で使っている変数の流れ\n<!-- cols: 30,34,54 -->\n| 変数 | 設定する要素 | 使っている場所（記入例） |\n|---|---|---|\n| PROTOCOL / HOST / PORT | [必須] 共通変数 | 全 API の接続先 |\n| SEQ | [任意] 連番 | API01 のボディ、API03 の orderNo、API04 のクエリ |\n| RANDOM_NO | [任意] 乱数 | API02 のクエリ rand |\n| USER_ID / PASSWORD / KEYWORD | [任意] CSVデータ読込 | API01 のボディ、API02 のクエリ |\n| ITEM_CODE / ITEM_NAME / QUANTITY | [任意] Excelデータ行取得 | API02 のクエリ、API03 のボディ |\n| REQUEST_ID / TIMESTAMP | [任意] 共通前処理 | API01 のヘッダ・ボディ |\n| SIGNATURE | API01 前処理 | API01 のヘッダ X-Signature |\n| AUTH_TOKEN | API01 JSON抽出 | API02 / API03 の Authorization ヘッダ |\n| ORDER_NO | API03 正規表現抽出 | API03 後処理のログ出力 |\n| CLIENT_ID | 共通変数（設定 user_variables） | 共通ヘッダ X-Client-Id |\n\n### 要素を削除・無効化するときのポイント\n- 一時的に外す場合は、削除より「Disable」（右クリック → Disable、または Ctrl + T）が安全です。\n- 変数を設定している要素を削除すると、その変数を使っている箇所では ${変数名} という文字列がそのまま送信されます。上の「変数の流れ」を確認してから削除してください。\n- CSV データ読込は、ファイルが見つからないとスレッドがエラーで停止します。CSV を使わない場合は削除してください。\n- Excel データ読込は、ファイル・シート・データ行が無い場合や、計算結果の無い数式・エラー値のセルがある場合に、失敗として JTL・レポートに記録してテストを停止します（値の無い変数で API を呼び出さないため）。Excel を使わない場合は「Excelデータ読込」と「Excelデータ行取得」を無効化・削除するか、設定 excel_data を OFF にして生成してください。実行時だけ使わない場合は -JEXCEL_FILE=（空）を指定します。\n- アクセストークン読込は、ファイルの読み込みに失敗した場合（他のプロセスが書き込み中など）、前回読み込んだトークンを使い、次の API の呼び出しで読み直します。\n- 生成時に設定を OFF にすると、その要素は最初から生成されません（「4.入力項目_設定」参照）。\n\n## 8.JMXの更新\n<!-- summary: JMeter で調整した JMX を、API 定義の変更に合わせて違う箇所だけ更新する（generate -u） -->\ngenerate に -u（PowerShell は -UpdateJmx）で生成済みの JMX を指定すると、新しい JMX は作らずに、入力ファイル（Excel / CSV / OpenAPI 定義）から生成した内容と比べて、違う箇所だけを既存の JMX に反映します。JMeter GUI で追加した要素や変更した値を残したまま、API の追加・変更・削除を取り込めます。更新する箇所は、書き換える前に一覧で表示します。\n\n### 更新手順\n```bash\n# RHEL 9.8\n# 1. 更新箇所を確認する（ファイルは書き換えない）\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx -u output/api_test.jmx --dry-run\n# 2. 更新する\n./jmeter_api_tool.sh generate -i input/api_definition.xlsx -u output/api_test.jmx\n# OpenAPI 定義の場合\n./jmeter_api_tool.sh generate -i openapi.json -c input/openapi_config.csv -u output/OrdersApi.jmx\n```\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx -u output\\api_test.jmx -DryRun\n.\\jmeter_api_tool.bat generate -i input\\api_definition.xlsx -u output\\api_test.jmx\n.\\jmeter_api_tool.bat generate -i openapi.json -c input\\openapi_config.csv -u output\\OrdersApi.jmx\n```\n\n<!-- cols: 22,30,66 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -u JMX | -UpdateJmx（-u） | 更新する JMX（このツールで生成したもの）。同じ場所・同じファイル名のまま更新します |\n| --dry-run | -DryRun | 更新箇所を表示するだけで、ファイルは書き換えない |\n\n- -i・-s・-c・--seed など入力に関するオプションは、JMX を生成するときと同じです。-o・-n は使いません（指定しても無視します）。--split とは同時に指定できません。\n- 更新前の JMX は「JMX名.jmx.日時.bak」に退避します（同じ秒に退避したファイルがある場合は「日時_2」のように連番を付けます）。更新後の JMX を書き終えてから置き換えるため、書き込みに失敗しても元の JMX は残ります。更新した後は、基準ファイル（JMX名.jmx.base.json）と Linux サーバでの実行コマンド（JMX名_linux_cmd.txt）も作り直します。\n- 違う箇所が無い場合は、JMX を書き換えません。\n\n### 更新箇所の表示\n```text\n==== JMX の更新内容（output/api_test.jmx） ====\n比較: 前回生成した内容（output/api_test.jmx.base.json）と今回の定義の差分だけを反映します。（以下略）\n[変更] [必須] メイン処理 (Thread Group) / API02_商品検索(GET)\n       パラメータ / リクエストボディ:\n         + sort=new\n[競合] [必須] メイン処理 (Thread Group) / API01_ログイン(POST JSON)\n       パス: /post-gui → /post-v2\n       （JMeter 側でも変更されていましたが、定義の値で更新します）\n[削除] [必須] メイン処理 (Thread Group) / API04_クッキー確認(GET)\n       HTTP リクエスト（配下の要素 5 件を含む）\n[追加] [必須] メイン処理 (Thread Group) / API05_注文取消(DELETE)\n       HTTP リクエスト（配下の要素 2 件を含む）\n----\n追加 1 件 / 変更 1 件 / 削除 1 件 / 競合 1 件 / 維持 0 件（定義に変更が無く JMeter 側の変更を残した箇所: 2、JMeter で削除済みのため追加しなかった要素: 0）\n```\n\n<!-- cols: 14,104 -->\n| 表示 | 内容 |\n|---|---|\n| [追加] | 定義に追加された API・要素を JMX に追加します（生成した順番で直前にある要素の後ろ） |\n| [変更] | 定義が変わった項目（パス・パラメータ・ヘッダ・ボディ・検証・設定値など）を更新します。複数行の値は、- の行を削除し + の行を追加します |\n| [削除] | 定義から無くなった API・要素を、配下の要素ごと JMX から削除します |\n| [競合] | JMeter 側と定義の両方で変更されていた項目です。定義の値で更新します（JMeter 側の値は退避した .bak で確認できます） |\n| [維持] | ツールが作る共通のスクリプト（テスト開始処理・共通前処理など）を JMeter 側で変更していたため、定義の内容にせず JMeter 側の内容を残した項目です |\n\n### 更新のルール\n- 前回生成した内容（基準ファイル JMX名.jmx.base.json）・現在の JMX・今回の定義から生成した内容の 3 つを比べ、前回から定義が変わった箇所だけを JMX に反映します。定義が変わっていない箇所は、JMeter で変更していてもそのまま残します。\n- JMeter で追加した要素（このツールが付けない名前の要素）は、更新・削除の対象外です。JMeter で削除した要素は、定義が変わらない限り追加し直しません。\n- 要素は名前で対応付けます。HTTP リクエストは名前（APIxx_API名）が同じもの、無ければ番号（コメント欄の「APIxx:」または名前の先頭の APIxx_）、API名の順で探します（OpenAPI 定義の場合は、API名（メソッド パス [operationId]）を番号より先に使います）。[必須] / [任意] で始まる要素の名前を JMeter で変更すると、このツールの要素として扱われなくなり、更新されません。\n- JMeter で並べ替えた要素の順番は、そのまま残します（順番の違いは更新しません）。\n- JMeter で保存し直した JMX（書式・属性の順番が変わったもの）も更新できます。改行コード（LF / CRLF）は元の JMX に合わせます。\n- 基準ファイルが無い場合（ファイルを削除した場合や、基準ファイルを作らない以前の版で生成した JMX）は、現在の JMX と今回の定義を直接比べ、違う箇所を定義の内容に更新します。JMeter で変更した値も定義の値に戻り、JMeter で削除した要素も追加し直すため（JMeter で追加した要素と、共通のスクリプトの変更は残します）、先に --dry-run / -DryRun で確認してください。1 回更新すると基準ファイルが作られ、次からは JMeter の変更を残す比較になります。\n- OpenAPI 定義の場合は、同じ API名の API の番号（APIxx）を引き継ぎ、追加された API には既存の番号の続きを付けます。基準ファイルがあれば、操作の定義（パラメータ・リクエストボディ・参照先のスキーマ）が変わっていない API は前回と同じテストデータを使います。乱数シードは前回の値（基準ファイル、無ければ JMX のコメントに書かれた値）を使います（--seed / -Seed で変更できます）。v1.1.0 で OpenAPI 定義から作る行の形式（パス・クエリの style など）を変えたため、v1.0.0 の基準ファイルを使う最初の更新では、すべての API の行を前回と同じ乱数シードで作り直します（定義が同じならテストデータの値は同じで、変わった形式の箇所だけが [変更] になります）。\n\n## 9.実行方法\n<!-- summary: GUI / CLI での実行方法、run コマンド、実行時に変更できるプロパティ -->\n\n### 実行モードの使い分け\n<!-- cols: 16,46,56 -->\n| モード | 用途 | コマンド例 |\n|---|---|---|\n| GUI モード | シナリオの作成・動作確認・デバッグ（少量の実行） | `jmeter -t output/api_test.jmx` |\n| CLI モード | 負荷試験・大量件数の実行・定期実行 | `jmeter -n -t output/api_test.jmx -l result.jtl -e -o report` |\n\n### run コマンド（推奨）\nrun コマンドは CLI モードで JMeter を実行し、結果フォルダ（result/JMX名_日時/）に JTL・ログ・HTML レポートをまとめて出力し、最後に集計結果を表示します。\n\n```bash\n# RHEL 9.8\n# 既定（1スレッド × 1回）\n./jmeter_api_tool.sh run -t output/api_test.jmx\n# 10 スレッド × 100 回（1 API あたり 1,000 件）、ランプアップ 10 秒\n./jmeter_api_tool.sh run -t output/api_test.jmx --threads 10 --loops 100 --rampup 10\n# 接続先を切り替え、ヒープを 2GB にして実行\n./jmeter_api_tool.sh run -t output/api_test.jmx --threads 50 --loops 200 -J HOST=stg.example.com --heap 2g\n```\n\n```powershell\n# Windows 11\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx -Threads 10 -Loops 100 -RampUp 10\n.\\jmeter_api_tool.bat run -t output\\api_test.jmx -Threads 50 -Loops 200 -Prop HOST=stg.example.com -Heap 2g\n```\n\n<!-- cols: 24,30,64 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -t ファイル | -Jmx（-t） | 実行する JMX。必須 |\n| --threads 数 | -Threads | スレッド数（THREADS） |\n| --rampup 秒 | -RampUp | ランプアップ秒数（RAMP_UP） |\n| --loops 数 | -Loops | ループ回数（LOOPS）。-1 で無限 |\n| --duration 秒 | -Duration | 実行時間（DURATION）。設定 duration を指定して生成した JMX のみ有効 |\n| -J 名前=値 | -Prop 名前=値,名前=値 | 任意のプロパティ。sh は複数回指定可、PowerShell はカンマ区切り |\n| -o フォルダ | -OutDir（-o） | 結果の出力先（既定: result） |\n| --heap サイズ | -Heap | JVM のヒープサイズ（例: 2g）。既定 1g |\n| --jmeter-home フォルダ | -JMeterHome | JMeter のフォルダ。省略時は環境変数 JMETER_HOME → PATH → 標準的な場所の順に探索 |\n| --fail-on-error | -FailOnError | 1 件でもエラーがあれば終了コード 2 を返す（CI 用） |\n| -- 以降の引数 | -ExtraArgs \"引数\" | JMeter にそのまま渡す追加オプション（例: プロキシ -H proxy.example.com -P 8080） |\n\n### 実行時に変更できるプロパティ\n<!-- cols: 34,32,52 -->\n| プロパティ | 既定値 | 説明 |\n|---|---|---|\n| THREADS | 設定 threads | 同時に実行するスレッド数（仮想ユーザー数） |\n| RAMP_UP | 設定 ramp_up | 全スレッドが起動するまでの秒数 |\n| LOOPS | 設定 loops | 各スレッドの繰り返し回数（-1 = 無限） |\n| DURATION | 設定 duration | 実行時間（秒）。duration を指定して生成した JMX のみ |\n| THROUGHPUT | 設定 throughput_per_min | スループット制御を有効にした場合の目標（件 / 分） |\n| PROTOCOL / HOST / PORT | URL から自動設定 | 接続先。2 つ目以降のホストは HOST_2、HOST_3 … |\n| CONNECT_TIMEOUT / RESPONSE_TIMEOUT | 10000 / 30000 | 接続 / 応答タイムアウト（ミリ秒） |\n| CSV_FILE | data/testdata.csv | CSV データファイル（相対パスは JMX のフォルダ基準） |\n| EXCEL_FILE / EXCEL_SHEET | data/testdata.xlsx / 先頭シート | Excel データファイルとシート名 |\n| RESULT_DIR | ~/result | JTL・結果ログの出力先（~/ は JMX のフォルダ。run コマンドは自動設定） |\n| LOG_RESPONSE | error | 結果ログへの本文出力（none / error / all） |\n| LOG_MAX_CHARS | 1000 | 結果ログに出力する本文の最大文字数 |\n| 共通変数の名前（例: ENV） | 設定 user_variables | 設定で定義した共通変数 |\n\n### Linux サーバで実行するコマンド（JMX名_linux_cmd.txt）\ngenerate で JMX を生成すると、同じフォルダに「JMX名_linux_cmd.txt」（例: api_test_linux_cmd.txt）を出力します。JMX を Linux サーバに持ち込み、このツールを使わずに JMeter の CLI で実行するためのテキストファイルで、次の内容を記載しています。\n- 前提（Java・JMeter のインストール）と、サーバに持ち込むファイル（JMX・CSV / Excel のデータファイル・アクセストークンのフォルダ）\n- そのまま貼り付けて実行できるコマンド（結果フォルダの作成と -n / -t / -l / -j / -e -o / -J の指定。複数行と 1 行の 2 通り）\n- JMeter のオプションと、JMX で使っているプロパティ（-J名前=値）ごとの説明・既定値\n- 実行後の確認方法と、実行中の停止方法\n\nJMeter で編集した JMX などから作り直す場合は、linux-cmd コマンドを使います。\n```bash\n./jmeter_api_tool.sh linux-cmd -t output/api_test.jmx       # RHEL 9.8\n```\n```powershell\n.\\jmeter_api_tool.bat linux-cmd -t output\\api_test.jmx      # Windows 11\n```\n\n<!-- cols: 24,30,64 -->\n| sh のオプション | PowerShell のオプション | 説明 |\n|---|---|---|\n| -t ファイル | -Jmx（-t） | 対象の JMX。必須 |\n| -o フォルダ | -OutDir（-o） | 出力先フォルダ（既定: JMX と同じフォルダ） |\n\n- コマンドの -J の値は、JMX に書かれた既定値（${__P(名前,既定値)} の既定値）です。接続先・スレッド数など、必要な値に書き換えてから実行してください。\n- JMX の ${__P(名前,既定値)} を読み取って作るため、JMeter で追加・変更したプロパティも反映されます。\n\n### JMeter を直接実行する場合\n```bash\n# RHEL 9.8（-f は既存の結果ファイル・レポートフォルダを削除してから実行）\njmeter -n -t output/api_test.jmx -l result/result.jtl -j result/jmeter.log \\\n  -e -o result/report -f -JTHREADS=10 -JLOOPS=100 -JRESULT_DIR=result\n```\n```powershell\n# Windows 11\n& \"$env:JMETER_HOME\\bin\\jmeter.bat\" -n -t output\\api_test.jmx -l result\\result.jtl -j result\\jmeter.log -e -o result\\report -f -JTHREADS=10 -JLOOPS=100 -JRESULT_DIR=result\n```\n- RESULT_DIR を相対パスで指定した場合は、JMeter を起動したフォルダ（カレントディレクトリ）が基準になります。\n- HTML レポートの出力先（-o）は、存在しないか空のフォルダである必要があります（-f を付けると自動で削除されます）。\n\n### GUI モードで実行する場合\n- メニューの「Run」→「Start」（Ctrl + R）で実行し、「結果ツリー」「集計レポート」で結果を確認します。\n- GUI で実行した場合も、JTL・結果ログは RESULT_DIR（既定: JMX と同じフォルダの result）に出力されます。\n- GUI での大量実行は避けてください。画面の描画で JMeter 自体が遅くなり、正しく測定できません。\n\n## 10.大量実行\n<!-- summary: 件数の考え方、負荷試験の推奨設定、JVM・OS の調整 -->\n\n### リクエスト件数の考え方\n総リクエスト件数 = THREADS（スレッド数）× LOOPS（ループ回数）× 有効な API の数\n\n<!-- cols: 22,50,46 -->\n| 目的 | 指定例 | 件数（API 4 本の場合） |\n|---|---|---|\n| 疎通確認（既定） | THREADS=1, LOOPS=1 | 4 件 |\n| 少量の連続実行 | THREADS=1, LOOPS=100 | 400 件 |\n| 並列実行 | THREADS=10, LOOPS=100 | 4,000 件 |\n| 時間指定の負荷試験 | 設定 duration=600 で生成し、THREADS=50, LOOPS=-1 | 600 秒間継続 |\n| CSV の行数だけ実行 | LOOPS=-1、設定 csv_recycle=false・csv_stop_thread=true | CSV 行数 × API 数 |\n\n### 負荷試験の推奨設定\n- CLI モード（run コマンド、または jmeter -n）で実行します。\n- [任意] 結果ログ出力は 1 件ごとにファイルへ書き込むため、毎秒数百件を超える場合は無効化するか、LOG_RESPONSE=none にします。\n- [任意] JTL出力 全件 は run コマンドの result.jtl と同じ内容を別ファイルに書き込むため、大量実行時は無効化してかまいません。\n- [任意] 結果ツリー / 集計レポート / 統計レポートは CLI では負荷になりにくいですが、不要なら削除または無効化します。\n- 待機時間（Constant Timer）で実際の操作間隔を再現し、スループット制御で目標の件数 / 分に合わせます。\n- ランプアップは「スレッド数 ÷ 1 秒あたりに増やしたいスレッド数」を目安にし、急激に負荷をかけないようにします。\n- Excel データは全行をメモリに読み込むため、数万行を超えるデータは CSV を使ってください。\n\n### JVM のヒープサイズ\n<!-- cols: 22,30,66 -->\n| 規模の目安 | ヒープ | 指定方法 |\n|---|---|---|\n| 〜100 スレッド | 1g（既定） | 指定不要 |\n| 〜500 スレッド | 2g 〜 4g | run コマンドの --heap 4g / -Heap 4g |\n| 500 スレッド超 | 4g 以上、または分散実行 | 同上。JMeter を直接実行する場合は環境変数 HEAP（例: -Xms4g -Xmx4g -XX:MaxMetaspaceSize=256m） |\n\n### OS の調整（RHEL 9.8）\n```bash\n# ファイルディスクリプタの上限（スレッド数が多い場合）\nulimit -n                 # 現在値の確認\nulimit -n 65535           # 一時的に変更（恒久的には /etc/security/limits.conf）\n# エフェメラルポートの範囲\nsysctl net.ipv4.ip_local_port_range\n```\n\n### OS の調整（Windows 11）\n- 動的ポートの範囲は `netsh int ipv4 show dynamicport tcp` で確認できます。\n- 長時間の試験では、スリープ・省電力の設定を無効にしてから実行します。\n- ウイルス対策ソフトのリアルタイムスキャンが結果ファイルの書き込みを遅くする場合があります（除外設定は社内のルールに従ってください）。\n\n### 分散実行（参考）\n1 台で必要な負荷をかけられない場合は、JMeter の分散実行（コントローラ 1 台 + 負荷生成サーバー複数台）を利用します。各サーバーで `jmeter-server` を起動し、`jmeter -n -t output/api_test.jmx -R サーバー1,サーバー2` で実行します。CSV / Excel のデータファイルは各サーバーの同じパスに配置が必要です。詳細は JMeter 公式マニュアルの「Remote Testing」を参照してください。\n\n## 11.結果確認\n<!-- summary: 出力ファイルの場所と見方（HTML レポート・JTL・ログ） -->\n\n### run コマンドの出力先\n```text\nresult/api_test_20261011_103000/\n├─ result.jtl          全リクエストの結果（CSV 形式）\n├─ jmeter.log          JMeter の実行ログ\n├─ report/index.html   HTML ダッシュボードレポート\n├─ api_result.log      結果ログ（[任意] 結果ログ出力）\n├─ result_all.jtl      JTL（[任意] JTL出力 全件）\n└─ error_detail.xml    失敗したリクエストの詳細（[任意] エラー詳細出力。失敗がある場合のみ）\n```\n\n### HTML レポート（report/index.html）\n<!-- cols: 28,90 -->\n| 画面 | 確認するポイント |\n|---|---|\n| Dashboard | APDEX（応答の満足度）、成功 / 失敗の割合、Statistics（API ごとの件数・エラー率・平均・90/95/99 パーセンタイル・スループット）、Errors（エラーの種類） |\n| Charts → Over Time | 応答時間・スループットの時間推移（性能劣化やエラー急増のタイミング） |\n| Charts → Throughput | 1 秒あたりのリクエスト数、応答コード別の件数 |\n| Charts → Response Times | 応答時間の分布、パーセンタイル |\n\nJTL から HTML レポートを作り直す場合は `jmeter -g result.jtl -o report2` を実行します。\n\n### JTL（result.jtl）の主な列\n<!-- cols: 22,96 -->\n| 列 | 内容 |\n|---|---|\n| timeStamp | 開始時刻（エポックミリ秒） |\n| elapsed | 応答時間（ミリ秒） |\n| label | API 名（HTTP リクエストの名前） |\n| responseCode / responseMessage | HTTP ステータスとメッセージ |\n| threadName | スレッド名 |\n| success | 成否（true / false） |\n| failureMessage | 検証（Assertion）エラーの内容 |\n| bytes / sentBytes | 受信 / 送信バイト数 |\n| grpThreads / allThreads | 実行中のスレッド数 |\n| URL | リクエストの URL |\n| Latency / Connect / IdleTime | 最初の応答までの時間 / 接続時間 / 待機時間（ミリ秒） |\n\n### 結果ログ（api_result.log）\nタブ区切りのテキストで、1 リクエスト 1 行です。列は「日時・結果（OK / NG）・ステータス・応答時間ms・受信バイト・ラベル・リクエスト（メソッドと URL）・スレッド・メッセージ」です。失敗時（LOG_RESPONSE=all の場合は全件）は次の行に [REQUEST] / [RESPONSE] として送信内容と応答本文（LOG_MAX_CHARS 文字まで）を出力します。最終行には合計・成功・失敗件数が出力されます。\n\n### エラー詳細（error_detail.xml）\n失敗したリクエストだけを、リクエストヘッダ・本文とレスポンスヘッダ・本文付きで出力します。JMeter GUI の「結果ツリー（View Results Tree）」の「Filename」欄でこのファイルを開くと、内容を画面で確認できます。\n\n### jmeter.log\n- 「==== テスト開始」「==== テスト終了」の行に、実行条件と合計・成功・失敗件数が出力されます。\n- 失敗したリクエストは「[API NG]」で始まる警告として出力されます。\n- スクリプトのエラーは ERROR / WARN として出力されます。うまく動かない場合はまずこのファイルを確認してください。\n\n## 12.変数と関数\n<!-- summary: 生成される変数、よく使う関数、JSR223（Groovy）・抽出の書き方 -->\n\n### 生成される変数\n<!-- cols: 34,26,58 -->\n| 変数 | 設定する要素 | 内容 |\n|---|---|---|\n| `${PROTOCOL}` `${HOST}` `${PORT}` | 共通変数 | 接続先 |\n| `${SEQ}` | 連番 | 000001 から始まる連番（全スレッドで一意） |\n| `${RANDOM_NO}` | 乱数 | 1 〜 99999 の乱数 |\n| `${REQUEST_ID}` | 共通前処理 | リクエストごとの UUID |\n| `${TIMESTAMP}` / `${EPOCH_MS}` | 共通前処理 | 現在時刻（ISO 8601 形式 / エポックミリ秒） |\n| `${LAST_STATUS}` / `${LAST_ELAPSED_MS}` | 共通後処理 | 直前の API のステータスと応答時間 |\n| `${EXCEL_ROW_NO}` | Excelデータ行取得 | 使用中の Excel の行番号 |\n| CSV / Excel の列名 | CSVデータ読込 / Excelデータ行取得 | 1 行目の列名がそのまま変数名になる |\n\n### よく使う関数\n<!-- cols: 18,46,54 -->\n| 関数 | 記入例 | 結果 |\n|---|---|---|\n| `__P` | `${__P(THREADS,1)}` | プロパティの値（未指定なら既定値） |\n| `__UUID` | `${__UUID()}` | ランダムな UUID |\n| `__time` | `${__time(yyyyMMddHHmmss,)}` | 現在時刻（書式指定） |\n| `__Random` | `${__Random(1,100,)}` | 1 〜 100 の乱数 |\n| `__RandomString` | `${__RandomString(8,abcdef0123456789,)}` | 指定した文字からなるランダムな文字列 |\n| `__counter` | `${__counter(FALSE,)}` | 全スレッド共通の連番（TRUE にするとスレッドごと） |\n| `__threadNum` | `${__threadNum}` | スレッド番号 |\n| `__urlencode` | `${__urlencode(${KEYWORD})}` | URL エンコード |\n| `__digest` | `${__digest(SHA-256,${USER_ID},,,)}` | ハッシュ値 |\n| `__timeShift` | `${__timeShift(yyyy-MM-dd,,P1D,,)}` | 日付の計算（例: 翌日） |\n| `__groovy` | `${__groovy(vars.get('SEQ').toInteger() * 2,)}` | Groovy の式の結果 |\n| `__V` | `${__V(USER_${SEQ})}` | 変数名を組み立てて参照 |\n\n### JSR223（Groovy）の書き方\n```groovy\n// 変数の取得・設定（値は文字列）\nString userId = vars.get('USER_ID')\nvars.put('USER_ID_UPPER', userId.toUpperCase())\n\n// プロパティ（全スレッド共通）の取得・設定\nString host = props.getProperty('HOST', 'localhost')\nprops.put('SHARED_TOKEN', vars.get('AUTH_TOKEN'))\n\n// 直前の応答（後処理・リスナーで使用）\nString code = prev.getResponseCode()\ndef json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())\nvars.put('ORDER_ID', String.valueOf(json.data.id))\n\n// ログ出力（jmeter.log）\nlog.info('order id = ' + vars.get('ORDER_ID'))\n```\n- JSR223 のスクリプト内では `${変数名}` を使わず、`vars.get('変数名')` を使います（${} を使うとスクリプトのキャッシュが効かず、値によっては構文エラーになります）。\n- 言語は groovy、「Cache compiled script if available」はオンにします（生成した JMX は設定済み）。\n- vars はスレッドごと、props は全スレッド共通です。スレッドをまたいで値を共有する場合は props を使います。\n\n### 正規表現抽出の書き方\n<!-- cols: 40,78 -->\n| 抽出したいもの | 正規表現の例 |\n|---|---|\n| JSON の \"token\":\"abc\" の abc | `\"token\"\\s*:\\s*\"([^\"]+)\"` |\n| 数値の項目 \"id\": 123 の 123 | `\"id\"\\s*:\\s*(\\d+)` |\n| HTML の hidden 項目の値 | `name=\"csrf\" value=\"([^\"]+)\"` |\n| 応答ヘッダの値（GUI で対象を Response Headers に変更） | `Location: (.+)` |\n- ( ) で囲んだ部分が変数に入ります（テンプレート `$1$`）。見つからない場合は NOT_FOUND が入ります。\n- 一致したものをすべて取得するには、GUI で「Match No.」を -1 にします。`変数名_1`、`変数名_2` … と、件数を表す `変数名_matchNr` が作られます。\n\n### JSON 抽出（JSONPath）の書き方\n<!-- cols: 40,78 -->\n| 抽出したいもの | JSONPath |\n|---|---|\n| ルートの id | `$.id` |\n| 入れ子の値 | `$.data.user.name` |\n| 配列の先頭要素 | `$.items[0].id` |\n| 条件に一致する要素 | `$.items[?(@.status == 'active')].id` |\n| すべての id（Match No. を -1 にする） | `$..id` |\n\n## 13.トラブル対応\n<!-- summary: よくあるエラーと対処方法 -->\n<!-- cols: 36,36,48 -->\n| 症状 | 主な原因 | 対処 |\n|---|---|---|\n| `python3: command not found`（RHEL） | python3 が未導入 | `sudo dnf install -y python3` |\n| `$'\\r': command not found`（RHEL） | 改行コードが CRLF になっている | `sed -i 's/\\r$//' jmeter_api_tool.sh` |\n| このシステムではスクリプトの実行が無効になっている（Windows） | PowerShell の実行ポリシー | jmeter_api_tool.bat から実行する |\n| 日本語が文字化けする（コンソール） | 端末の文字コード | RHEL は `export LANG=ja_JP.UTF-8` など UTF-8 の端末を使用 |\n| JMeter が見つからない | JMETER_HOME が未設定 | 環境変数 JMETER_HOME を設定するか、--jmeter-home / -JMeterHome で指定 |\n| Java が見つからない・バージョンが古い | Java が未導入、PATH が未設定 | Java 17 をインストールし、JAVA_HOME と PATH を設定 |\n| `${USER_ID}` などがそのまま送信される | 変数を設定する要素が削除・無効、または変数名の誤り | 結果ツリーでリクエストを確認し、変数名と設定元の要素を見直す |\n| CSV の値が `<EOF>` になる | CSV の最終行に達した（csv_recycle=false） | csv_recycle=true にするか、ループ回数を見直す |\n| `File … must exist and be readable` | CSV ファイルが見つからない | CSV_FILE を JMX からの相対パス、または絶対パスで指定 |\n| 応答の日本語が文字化けする | 応答に文字コードの指定がない | JMeter 5.6.3 は既定で UTF-8。異なる場合は `-Jsampleresult.default.encoding=文字コード` |\n| Connection refused / Connect timed out | 接続先・ポートの誤り、ファイアウォール、プロキシ | URL を確認。プロキシ経由の場合は -H プロキシ -P ポート を追加（run は -- / -ExtraArgs で指定） |\n| SSLHandshakeException | TLS のバージョン・証明書の問題 | jmeter.log で詳細を確認。クライアント証明書が必要な場合は system.properties で keystore を設定 |\n| `java.lang.OutOfMemoryError` | ヒープ不足 | --heap / -Heap で増やす。CLI で実行し、結果ツリーを無効化 |\n| `BindException: Address already in use` | クライアント側のポート枯渇 | KeepAlive を有効（既定）にする、スレッド数を減らす、OS のポート範囲を広げる |\n| `Too many open files`（RHEL） | ファイルディスクリプタの上限 | `ulimit -n` で上限を引き上げる |\n| HTML レポートが作成されない | JTL が空、出力先フォルダが空でない | jmeter.log を確認。`jmeter -g result.jtl -o 新しいフォルダ` で再作成 |\n| Excel のデータが読み込まれない・「Excelデータ読込」が失敗してテストが止まる | ファイルパス・シート名の誤り、.xls 形式、データ行が無い、計算結果の無い数式 | jmeter.log の [Excel] の行を確認。.xlsx 形式で保存する（.xls は非対応）。Excel を使わない場合は「Excelデータ読込」「Excelデータ行取得」を無効化する |\n| ヘッダに書いた Cookie が送信されない | クッキー管理（Cookie Manager）がクッキーを持っているとヘッダの Cookie を置き換える | クッキーは設定 cookies に記入するか、設定 cookie_manager を OFF にする |\n| `引用符（\"）が閉じられていません`（generate） | CSV のセルの \" の対応が取れていない | エラーの行を確認し、値を \"...\" で囲み、値の中の \" は \"\" と書く |\n| `読み取れないセルがあります`（generate） | Excel のセルが計算結果の無い数式・エラー値 | Excel で開いて数式の結果を確認し、保存し直す |\n| `JSON の構文エラーです（YAML 形式は未対応です）`（generate） | OpenAPI 定義が YAML、または JSON の書式誤り | YAML は JSON に変換してから指定する。JSON はエラーメッセージの行・列を確認して修正 |\n| `Swagger 2.0 形式には対応していません`（generate） | Swagger 2.0（OpenAPI 2.0）の定義 | OpenAPI 3.0.x 形式に変換してから指定する |\n| `curl コマンドとして読めません`（add-curl） | 先頭が curl ではない、またはコマンドの貼り付け誤り | curl で始まるコマンドを指定する（ブラウザの「Copy as cURL」の内容をそのまま保存したファイルを --curl-file / -CurlFile で指定すると確実） |\n| `CSV の文字コード（Shift_JIS(CP932)）で表せない文字が含まれています`（add-curl） | Shift_JIS の CSV に、Shift_JIS に無い文字を追加しようとした | CSV を UTF-8 で保存し直してから実行する |\n| `jmeter_api_tool で生成した JMX ではありません`（generate -u） | このツールで生成していない JMX、または「[必須] メイン処理」の名前を変更した | このツールで生成した JMX を指定する（新しく作る場合は -u / -UpdateJmx を付けない） |\n| JMeter で変更した値が更新で元に戻った（generate -u） | 基準ファイル（JMX名.jmx.base.json）が無かった、または [競合] の項目だった | 表示された [競合] / [変更] を確認し、退避した .bak から値を戻す。基準ファイルは JMX と同じフォルダに残しておく |\n\n## 14.コマンド一覧\n<!-- summary: ツールと JMeter のコマンドラインオプション -->\n\n### ツールのコマンド\n<!-- cols: 12,46,46,30 -->\n| コマンド | RHEL 9.8（sh） | Windows 11（bat / ps1） | 説明 |\n|---|---|---|---|\n| init | `./jmeter_api_tool.sh init [-o フォルダ] [-f]` | `jmeter_api_tool.bat init [-OutDir フォルダ] [-Force]` | 入力テンプレートを作成（既定: input） |\n| generate | `./jmeter_api_tool.sh generate -i ファイル [-s 設定CSV] [-o フォルダ] [-n ファイル名] [--split] [-f] [-c OpenAPI用設定] [--seed N] [-u JMX [--dry-run]]` | `jmeter_api_tool.bat generate -i ファイル [-s 設定CSV] [-OutDir フォルダ] [-JmxName ファイル名] [-Split] [-Force] [-c OpenAPI用設定] [-Seed N] [-UpdateJmx JMX [-DryRun]]` | JMX を生成（既定: output）。OpenAPI 用のオプションは「6.OpenAPI定義から生成」、-u（既存の JMX の差分更新）は「8.JMXの更新」参照 |\n| add-curl | `./jmeter_api_tool.sh add-curl -i API一覧 (--curl-file ファイル / --curl \"curl …\" / -- curl …) [--name API名] [--dry-run]` | `jmeter_api_tool.bat add-curl -i API一覧 (-CurlFile ファイル / -Curl \"curl …\") [-ApiName API名] [-DryRun]` | curl コマンドを解析して API一覧に追加（1 コマンド = 1 行。複数のコマンドも可。「3.JMX生成」参照） |\n| linux-cmd | `./jmeter_api_tool.sh linux-cmd -t JMX [-o フォルダ]` | `jmeter_api_tool.bat linux-cmd -t JMX [-OutDir フォルダ]` | Linux サーバで実行するコマンドと説明を出力（「9.実行方法」参照） |\n| manual | `./jmeter_api_tool.sh manual [-o フォルダ]` | `jmeter_api_tool.bat manual [-OutDir フォルダ]` | 本書（xlsx / md）を出力（既定: docs） |\n| run | `./jmeter_api_tool.sh run -t JMX [オプション]` | `jmeter_api_tool.bat run -t JMX [オプション]` | CLI モードで実行（既定: result） |\n| help | `./jmeter_api_tool.sh help` | `jmeter_api_tool.bat help` | ヘルプを表示 |\n\n### JMeter の主なオプション\n<!-- cols: 24,94 -->\n| オプション | 説明 |\n|---|---|\n| -n | CLI（非 GUI）モードで実行 |\n| -t ファイル | 実行する JMX |\n| -l ファイル | 結果（JTL）の出力先 |\n| -j ファイル | ログ（jmeter.log）の出力先 |\n| -e | テスト終了後に HTML レポートを作成 |\n| -o フォルダ | HTML レポートの出力先（存在しないか空のフォルダ） |\n| -f | 既存の結果ファイル・レポートフォルダを削除してから実行 |\n| -g ファイル | 既存の JTL から HTML レポートだけを作成（-o と併用） |\n| -J名前=値 | JMeter プロパティを設定（${__P(名前,既定値)} で参照） |\n| -G名前=値 | 分散実行時に全サーバーへプロパティを設定 |\n| -D名前=値 | Java のシステムプロパティを設定 |\n| -q ファイル | 追加のプロパティファイルを読み込む |\n| -H ホスト / -P ポート | プロキシサーバーのホスト / ポート |\n| -R ホスト1,ホスト2 | 分散実行（指定したサーバーで実行） |\n| -L レベル | ログレベル（例: -LDEBUG） |\n| -v | バージョンを表示 |\n",
  "template_guide_md": "## 記入方法（API定義テンプレート）\n\n### 基本的な使い方\n1. 「API一覧」シートに、呼び出す API を 1行 = 1API で記入します。上から順番に実行されます。\n2. 「設定」シートの「設定値」列で、スレッド数・ループ回数などの全体設定を変更します（空欄は既定値）。\n3. 保存後、次のコマンドで JMX を生成します。\n\n```text\nRHEL 9.8  : ./jmeter_api_tool.sh generate -i input/api_definition.xlsx\nWindows 11: jmeter_api_tool.bat generate -i input\\api_definition.xlsx\n```\n\n### 記入のルール\n- 「API一覧」の 4 行目（No 列が # で始まる行）は記入説明のため読み込まれません。API は 5 行目以降に記入します。行の追加・削除は自由です。\n- No 列が # で始まる行はコメントとして読み飛ばします。一時的に外したい API は No の先頭に # を付けるか、「有効」を N にします。\n- 複数の値を書く列（クエリパラメータ、ヘッダ、正規表現抽出など）は、セル内改行（Alt + Enter）で区切ります。\n- URL・パラメータ・ヘッダ・ボディには `${変数名}` で変数を埋め込めます。\n- シート名（API一覧・設定）と見出し行の列名は変更しないでください。列の並び順は入れ替えても読み込めます。\n- 入力セルは書式を「文字列」にしてあるため、0 始まりの値やカンマを含む値もそのまま保存されます。\n\n### API一覧の列\n<!-- @API_COLUMNS_TABLE@ -->\n\n### 記入例で使っている変数\n<!-- cols: 30,34,56 -->\n| 変数 | 設定する要素 | 内容 |\n|---|---|---|\n| `${USER_ID}` `${PASSWORD}` `${KEYWORD}` | CSVデータ読込（data/testdata.csv） | CSV の 1 行目の列名がそのまま変数名 |\n| `${ITEM_CODE}` `${ITEM_NAME}` `${QUANTITY}` | Excelデータ行取得（data/testdata.xlsx） | Excel の 1 行目の列名がそのまま変数名 |\n| `${SEQ}` / `${RANDOM_NO}` | 連番 / 乱数 | 反復ごとの連番（000001〜）/ 乱数 |\n| `${REQUEST_ID}` `${TIMESTAMP}` | 共通前処理 | リクエストごとの UUID / 現在時刻 |\n| `${AUTH_TOKEN}` | API01 の JSON抽出 | 前の API の応答から取り出した値 |\n| `${CLIENT_ID}` | 設定 user_variables | 共通変数 |\n\n### 生成されるもの\n- 生成された JMX の要素名は [必須] / [任意] で始まります。[任意] の要素は不要なら JMeter GUI で削除できます。\n- 詳しい使い方は利用方法（docs/JMeter_Usage_Guide.xlsx / .md）を参照してください。\n"
 }
 '@
@@ -2141,17 +2141,20 @@ function Write-TextFile([string]$path, [string]$text, [bool]$bom = $false) {
     }
     Write-BytesFile $path $body
 }
-function Parse-Csv([string]$text, [string]$delim = ',') {
+function Parse-Csv([string]$text, [string]$delim = ',', [string]$source = 'CSV') {
     $rows = New-Object System.Collections.Generic.List[object]
     $row = New-Object System.Collections.Generic.List[string]
     $field = New-Object System.Text.StringBuilder
     $d = [int][char]$delim
     $inq = $false
     $started = $false
+    $line = 1
+    $qline = 1
     $i = 0
     $n = $text.Length
     while ($i -lt $n) {
         $c = [int]$text[$i]
+        if ($c -eq 10) { $line++ }
         if ($inq) {
             if ($c -eq 34) {
                 if ($i + 1 -lt $n -and [int]$text[$i + 1] -eq 34) { [void]$field.Append('"'); $i += 2; continue }
@@ -2163,7 +2166,7 @@ function Parse-Csv([string]$text, [string]$delim = ',') {
             continue
         }
         if ($c -eq 34 -and $field.Length -eq 0) {
-            $inq = $true; $started = $true
+            $inq = $true; $started = $true; $qline = $line
         } elseif ($c -eq $d) {
             $row.Add($field.ToString()); [void]$field.Clear(); $started = $true
         } elseif ($c -eq 10) {
@@ -2174,6 +2177,9 @@ function Parse-Csv([string]$text, [string]$delim = ',') {
             [void]$field.Append($text[$i]); $started = $true
         }
         $i++
+    }
+    if ($inq) {
+        throw (New-ToolError ($source + ': ' + $qline + ' 行目の引用符（"）が閉じられていません（セルの値は "..." で囲み、値の中の " は "" と書いてください）'))
     }
     if ($started -or $field.Length -gt 0 -or $row.Count -gt 0) {
         $row.Add($field.ToString()); $rows.Add($row.ToArray())
@@ -2216,10 +2222,29 @@ function Add-XlText($el, $sb) {
         if ($c.LocalName -ceq 't') { [void]$sb.Append($c.InnerText) } else { Add-XlText $c $sb }
     }
 }
+function Xl-Unescape([string]$s) {
+    # Excel の文字列の _xHHHH_（制御文字などのエスケープ。_x005F_ は _）を文字に戻す
+    if (-not $s.Contains('_x')) { return $s }
+    $s = [regex]::Replace($s, '_x([0-9A-Fa-f]{4})_', { param($m) [string][char][Convert]::ToInt32($m.Groups[1].Value, 16) })
+    # 対になっていないサロゲートは U+FFFD にする
+    $sb = New-Object System.Text.StringBuilder
+    for ($i = 0; $i -lt $s.Length; $i++) {
+        $ch = $s[$i]
+        if ([char]::IsHighSurrogate($ch) -and $i + 1 -lt $s.Length -and [char]::IsLowSurrogate($s[$i + 1])) { [void]$sb.Append($ch).Append($s[$i + 1]); $i++ }
+        elseif ([char]::IsSurrogate($ch)) { [void]$sb.Append([char]0xFFFD) }
+        else { [void]$sb.Append($ch) }
+    }
+    return $sb.ToString()
+}
+function Xl-Escape([string]$s) {
+    # 文字列の中の _xHHHH_ を Excel に文字として読ませるため、先頭の _ を _x005F_ にする
+    if (-not $s.Contains('_x')) { return $s }
+    return [regex]::Replace($s, '_x(?=[0-9A-Fa-f]{4}_)', '_x005F_x')
+}
 function Get-XlText($el) {
     $sb = New-Object System.Text.StringBuilder
     Add-XlText $el $sb
-    return $sb.ToString()
+    return (Xl-Unescape $sb.ToString())
 }
 function ColIndex([string]$ref) {
     $n = 0
@@ -2231,7 +2256,7 @@ function ColIndex([string]$ref) {
     }
     return $n - 1
 }
-function Load-ZipXml($zip, [string]$name) {
+function Load-ZipXml($zip, [string]$name, [string]$path = '') {
     $entry = $zip.GetEntry($name)
     if ($null -eq $entry) { return $null }
     $stream = $entry.Open()
@@ -2242,14 +2267,45 @@ function Load-ZipXml($zip, [string]$name) {
         $reader = [System.Xml.XmlReader]::Create($stream, $settings)
         $doc = New-Object System.Xml.XmlDocument
         $doc.PreserveWhitespace = $true
-        $doc.Load($reader)
+        try { $doc.Load($reader) } catch [System.Xml.XmlException] {
+            throw (New-ToolError ('Excel ファイルの XML が正しくありません: ' + $path + '（' + $name + ' / ' + $_.Exception.Message + '）'))
+        }
         $reader.Close()
         return ,$doc.DocumentElement
     } finally {
         $stream.Dispose()
     }
 }
-function Read-XlRows($root, $shared) {
+function Get-XlPart([string]$target) {
+    # ブックのリレーションの Target（xl/ からの相対パス、または / から始まるパス）→ ZIP 内のパス
+    if ($target.StartsWith('/', $script:Ord)) { $p = $target.TrimStart('/') } else { $p = 'xl/' + $target }
+    $out = New-Object System.Collections.Generic.List[string]
+    foreach ($seg in $p.Split('/')) {
+        if ($seg -ceq '' -or $seg -ceq '.') { continue }
+        if ($seg -ceq '..') {
+            if ($out.Count -gt 0 -and $out[$out.Count - 1] -cne '..') { $out.RemoveAt($out.Count - 1) } else { $out.Add('..') }
+            continue
+        }
+        $out.Add($seg)
+    }
+    if ($out.Count -eq 0) { return '.' }
+    return ($out.ToArray() -join '/')
+}
+$script:XlsxProblems = @{}    # Read-Xlsx で読み取れなかったセル @{ "ファイルの絶対パス`nシート名" = 説明の一覧 }
+function Assert-XlsxSheet([string]$path, [string]$sheet) {
+    # 使うシートに読み取れないセルがあればエラーにする（使わないシートの問題は無視する）
+    $key = (FullPath $path) + "`n" + $sheet
+    if (-not $script:XlsxProblems.ContainsKey($key)) { return }
+    $problems = $script:XlsxProblems[$key]
+    if ($problems.Count -eq 0) { return }
+    $more = ''
+    if ($problems.Count -gt 3) { $more = '（ほか ' + ($problems.Count - 3) + ' 件）' }
+    $shown = New-Object System.Collections.Generic.List[string]
+    for ($k = 0; $k -lt [Math]::Min(3, $problems.Count); $k++) { $shown.Add($problems[$k]) }
+    throw (New-ToolError ('Excel の「' + $sheet + '」シートに読み取れないセルがあります: ' + ($shown.ToArray() -join '、') + $more + ' / ' + $path))
+}
+function Read-XlRows($root, $shared, $problems = $null) {
+    # $problems: 値を読み取れないセル（計算結果の無い数式・エラー値・不正な共有文字列の参照）の説明を追加するリスト
     $rows = New-Object System.Collections.Generic.List[object]
     foreach ($sd in (Get-Children $root 'sheetData')) {
         $last = 0
@@ -2267,16 +2323,30 @@ function Read-XlRows($root, $shared) {
                 $nextc = $ci + 1
                 $t = $c.GetAttribute('t')
                 $val = ''
+                if (-not $ref) { $ref = (ColLetter ($ci + 1)) + [string]$rnum }
                 if ($t -ceq 'inlineStr') {
                     foreach ($x in (Get-Children $c 'is')) { $val = Get-XlText $x }
                 } else {
                     $v = ''
-                    foreach ($x in (Get-Children $c 'v')) { $v = $x.InnerText }
+                    $vs = Get-Children $c 'v'
+                    foreach ($x in $vs) { $v = $x.InnerText }
+                    if ((Get-Children $c 'f').Count -gt 0 -and $vs.Count -eq 0 -and $null -ne $problems) {
+                        $problems.Add('セル ' + $ref + ' の数式に計算結果がありません（Excel で開いて保存し直してください）')
+                    }
                     if ($t -ceq 's') {
                         $idx = 0
-                        if ([int]::TryParse($v.Trim(), [ref]$idx) -and $idx -ge 0 -and $idx -lt $shared.Count) { $val = $shared[$idx] } else { $val = '' }
+                        if ([int]::TryParse($v.Trim(), [ref]$idx) -and $idx -ge 0 -and $idx -lt $shared.Count) { $val = $shared[$idx] }
+                        else {
+                            if ($null -ne $problems) { $problems.Add('セル ' + $ref + ' の共有文字列の参照（' + $v.Trim() + '）が正しくありません') }
+                            $val = ''
+                        }
                     } elseif ($t -ceq 'b') {
                         if ($v.Trim() -ceq '1') { $val = 'TRUE' } else { $val = 'FALSE' }
+                    } elseif ($t -ceq 'e') {
+                        if ($null -ne $problems) { $problems.Add('セル ' + $ref + ' がエラー値（' + $v.Trim() + '）です') }
+                        $val = $v
+                    } elseif ($t -ceq 'str') {
+                        $val = Xl-Unescape $v
                     } else {
                         $val = $v
                     }
@@ -2304,10 +2374,10 @@ function Read-Xlsx([string]$path) {
     }
     try {
         $shared = New-Object System.Collections.Generic.List[string]
-        $sst = Load-ZipXml $zip 'xl/sharedStrings.xml'
+        $sst = Load-ZipXml $zip 'xl/sharedStrings.xml' $path
         foreach ($si in (Get-Children $sst 'si')) { $shared.Add((Get-XlText $si)) }
-        $wb = Load-ZipXml $zip 'xl/workbook.xml'
-        $rels = Load-ZipXml $zip 'xl/_rels/workbook.xml.rels'
+        $wb = Load-ZipXml $zip 'xl/workbook.xml' $path
+        $rels = Load-ZipXml $zip 'xl/_rels/workbook.xml.rels' $path
         if ($null -eq $wb -or $null -eq $rels) { throw (New-ToolError ('Excel ファイルの形式が正しくありません: ' + $path)) }
         $relmap = New-Object 'System.Collections.Generic.Dictionary[string,string]'
         foreach ($r in (Get-Children $rels 'Relationship')) { $relmap[$r.GetAttribute('Id')] = $r.GetAttribute('Target') }
@@ -2319,10 +2389,13 @@ function Read-Xlsx([string]$path) {
                 $target = ''
                 if ($relmap.ContainsKey($rid)) { $target = $relmap[$rid] }
                 if (-not $target) { continue }
-                if ($target.StartsWith('/', $script:Ord)) { $part = $target.Substring(1) } else { $part = 'xl/' + $target }
-                $root = Load-ZipXml $zip $part
-                if ($null -ne $root) { $rows = Read-XlRows $root $shared } else { $rows = New-Object System.Collections.Generic.List[object] }
+                $part = Get-XlPart $target
+                $root = Load-ZipXml $zip $part $path
+                $problems = New-Object System.Collections.Generic.List[string]
+                if ($null -ne $root) { $rows = Read-XlRows $root $shared $problems }
+                else { $rows = New-Object System.Collections.Generic.List[object]; $problems.Add('シートの XML（' + $part + '）がありません') }
                 $sheets.Add(@($el.GetAttribute('name'), $rows))
+                $script:XlsxProblems[$full + "`n" + $el.GetAttribute('name')] = $problems
             }
         }
         return ,$sheets
@@ -2389,7 +2462,7 @@ function T-Xml([string]$s, [bool]$force = $false) {
     $s = Clean $s
     $sp = ''
     if ($force -or ($s.Length -gt 0 -and (" `t`n".IndexOf($s[0]) -ge 0 -or " `t`n".IndexOf($s[$s.Length - 1]) -ge 0))) { $sp = ' xml:space="preserve"' }
-    return '<t' + $sp + '>' + (XEsc $s) + '</t>'
+    return '<t' + $sp + '>' + (XEsc (Xl-Escape $s)) + '</t>'
 }
 function RPr-Xml([int]$fontIdx, [bool]$bold) {
     $f = $script:Spec.styles.fonts[$fontIdx]
@@ -3075,7 +3148,7 @@ function ApiColumns-TableMd {
     return ($out.ToArray() -join "`n")
 }
 function Expand-Md([string]$md) {
-    $md = $md.Replace('1.0.0', $script:ToolVersion).Replace('@@DATE@@', (Get-Today))
+    $md = $md.Replace('@@VERSION@@', $script:ToolVersion).Replace('@@DATE@@', (Get-Today))
     $md = $md.Replace('<!-- @SETTINGS_TABLE@ -->', (Settings-TableMd))
     $md = $md.Replace('<!-- @OPENAPI_CONFIG_TABLE@ -->', (Settings-TableMd $script:Spec.openapi_config '14,28,24,26,60'))
     return $md.Replace('<!-- @API_COLUMNS_TABLE@ -->', (ApiColumns-TableMd))
@@ -3165,7 +3238,7 @@ function Build-TemplateXlsx([string]$path) {
     $keys = New-Object System.Collections.Generic.List[string]
     foreach ($c in $cols) { $keys.Add($c.key) }
     $last = [int]$script:Tpl.validation_rows
-    foreach ($pair in @(@('enabled', 'Y,N'), @('method', 'GET,POST,PUT,PATCH,DELETE'), @('body_type', 'auto,json,form,raw'))) {
+    foreach ($pair in @(@('enabled', 'Y,N'), @('method', 'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS,TRACE'), @('body_type', 'auto,json,form,raw,xml,multipart'))) {
         $cl = ColLetter ($keys.IndexOf($pair[0]) + 1)
         $sh.Validations.Add(@(($cl + '5:' + $cl + $last), $pair[1]))
     }
@@ -4330,7 +4403,11 @@ function Get-ParamValue($p) {
     $schema = Get-OaProp $p 'schema'
     if ($null -eq $schema) {
         $content = Get-OaProp $p 'content'
-        if ((Test-Obj $content) -and ($content.Count -gt 0)) { $schema = Get-OaProp (Get-FirstValue $content) 'schema' }
+        if ((Test-Obj $content) -and ($content.Count -gt 0)) {
+            $media = Get-FirstValue $content
+            if ($script:OptUseExamples -and (Test-Obj $media) -and (Test-Has $media 'example')) { return , (ConvertTo-GenValue $media['example']) }
+            $schema = Get-OaProp $media 'schema'
+        }
     }
     if ($null -eq $schema) {
         $schema = New-OMap
@@ -4340,6 +4417,53 @@ function Get-ParamValue($p) {
     $v = New-Gen $schema 0 $empty
     if (Test-Skip $v) { $v = '' }
     return , $v
+}
+
+function Get-ParamText($p) {
+    # content（メディアタイプ）で定義したパラメータは、値をそのメディアタイプの文字列（JSON は 1 行）にして送る
+    $v = Get-ParamValue $p
+    $content = Get-OaProp $p 'content'
+    if (($null -eq (Get-OaProp $p 'schema')) -and (Test-Obj $content) -and ($content.Count -gt 0)) {
+        if ((Get-MediaKind ([string](@($content.Keys)[0]))) -ceq 'json') { return (ConvertTo-JsonText $v 0 $false) }
+        return (Get-ScalarStr $v)
+    }
+    return , $v
+}
+
+function Get-PathValue($p, $v, [bool]$Greedy) {
+    # パスパラメータの値（style: simple / label / matrix と explode）。各値をエンコードし、区切り文字はそのまま
+    $style = 'simple'
+    $explode = $false
+    $name = ''
+    if ($null -ne $p) {
+        $st = Get-OaProp $p 'style'
+        if (($st -ceq 'label') -or ($st -ceq 'matrix')) { $style = $st }
+        $ex = Get-OaProp $p 'explode'
+        $explode = ($ex -is [bool]) -and $ex
+        $name = Get-PctEncode ([string]$p['name']) $false
+    }
+    if ($style -ceq 'label') { $prefix = '.' } elseif ($style -ceq 'matrix') { $prefix = ';' + $name + '=' } else { $prefix = '' }
+    if (($style -ceq 'label') -and $explode) { $sep = '.' } else { $sep = ',' }
+    $items = New-Object 'System.Collections.Generic.List[string]'
+    if (Test-Arr $v) {
+        foreach ($x in $v) { $items.Add((Get-PctEncode (Get-ScalarStr $x) $Greedy)) }
+        if (($style -ceq 'matrix') -and $explode) {
+            $sb = New-Object System.Text.StringBuilder
+            foreach ($x in $items) { [void]$sb.Append(';' + $name + '=' + $x) }
+            return $sb.ToString()
+        }
+        return $prefix + [string]::Join($sep, $items)
+    }
+    if (Test-Obj $v) {
+        if (($style -ceq 'matrix') -and $explode) {
+            foreach ($k in @($v.Keys)) { $items.Add(';' + (Get-PctEncode ([string]$k) $Greedy) + '=' + (Get-PctEncode (Get-ScalarStr $v[$k]) $Greedy)) }
+            return [string]::Join('', $items)
+        }
+        if ($explode) { $kv = '=' } else { $kv = ',' }
+        foreach ($k in @($v.Keys)) { $items.Add((Get-PctEncode ([string]$k) $Greedy) + $kv + (Get-PctEncode (Get-ScalarStr $v[$k]) $Greedy)) }
+        return $prefix + [string]::Join($sep, $items)
+    }
+    return $prefix + (Get-PctEncode (Get-ScalarStr $v) $Greedy)
 }
 
 function Get-SimpleStyle($v, [bool]$Explode) {
@@ -4359,35 +4483,38 @@ function Get-SimpleStyle($v, [bool]$Explode) {
 }
 
 function New-Pair([string]$Name, [string]$Value) { return , @($Name, $Value) }
+function New-Triple([string]$Name, [string]$Value, [bool]$Encoded) { return , @($Name, $Value, $Encoded) }
 
 function Get-QueryPairs([string]$Name, $v, [string]$Style, [bool]$Explode) {
+    # @(名前, 値, エンコード済み) の一覧。区切り文字でつなぐ形（explode しない配列・オブジェクト、spaceDelimited、
+    # pipeDelimited）は、値の中の区切り文字と区別するため各値をエンコードしてから区切り文字でつなぐ
+    if ($Style -ceq 'spaceDelimited') { $sep = '%20' } elseif ($Style -ceq 'pipeDelimited') { $sep = '%7C' } else { $sep = ',' }
     $pairs = New-Object 'System.Collections.Generic.List[object]'
     if (Test-Arr $v) {
         if (($Style -ceq 'form') -and $Explode) {
-            foreach ($x in $v) { $pairs.Add((New-Pair $Name (Get-ScalarStr $x))) }
+            foreach ($x in $v) { $pairs.Add((New-Triple $Name (Get-ScalarStr $x) $false)) }
             return , $pairs
         }
-        if ($Style -ceq 'spaceDelimited') { $sep = ' ' } elseif ($Style -ceq 'pipeDelimited') { $sep = '|' } else { $sep = ',' }
         $parts = New-Object 'System.Collections.Generic.List[string]'
-        foreach ($x in $v) { $parts.Add((Get-ScalarStr $x)) }
-        $pairs.Add((New-Pair $Name ([string]::Join($sep, $parts))))
+        foreach ($x in $v) { $parts.Add((Get-PctEncode (Get-ScalarStr $x) $false)) }
+        $pairs.Add((New-Triple $Name ([string]::Join($sep, $parts)) $true))
         return , $pairs
     }
     if (Test-Obj $v) {
         if ($Style -ceq 'deepObject') {
-            foreach ($k in @($v.Keys)) { $pairs.Add((New-Pair ($Name + '[' + [string]$k + ']') (Get-ScalarStr $v[$k]))) }
+            foreach ($k in @($v.Keys)) { $pairs.Add((New-Triple ($Name + '[' + [string]$k + ']') (Get-ScalarStr $v[$k]) $false)) }
             return , $pairs
         }
         if ($Explode) {
-            foreach ($k in @($v.Keys)) { $pairs.Add((New-Pair ([string]$k) (Get-ScalarStr $v[$k]))) }
+            foreach ($k in @($v.Keys)) { $pairs.Add((New-Triple ([string]$k) (Get-ScalarStr $v[$k]) $false)) }
             return , $pairs
         }
         $parts = New-Object 'System.Collections.Generic.List[string]'
-        foreach ($k in @($v.Keys)) { $parts.Add([string]$k + ',' + (Get-ScalarStr $v[$k])) }
-        $pairs.Add((New-Pair $Name ([string]::Join(',', $parts))))
+        foreach ($k in @($v.Keys)) { $parts.Add((Get-PctEncode ([string]$k) $false) + $sep + (Get-PctEncode (Get-ScalarStr $v[$k]) $false)) }
+        $pairs.Add((New-Triple $Name ([string]::Join($sep, $parts)) $true))
         return , $pairs
     }
-    $pairs.Add((New-Pair $Name (Get-ScalarStr $v)))
+    $pairs.Add((New-Triple $Name (Get-ScalarStr $v) $false))
     return , $pairs
 }
 
@@ -4494,6 +4621,8 @@ function Get-XmlRootName($schema) {
 function New-Body($op) {
     if (-not (Test-Has $op 'requestBody')) { return $null }
     $rb = Resolve-Deref $op['requestBody'] 'requestBody'
+    $rq = Get-OaProp $rb 'required'
+    if ($script:OptRequiredOnly -and -not (($rq -is [bool]) -and $rq)) { return $null }
     $content = Get-OaProp $rb 'content'
     if (-not (Test-Obj $content) -or ($content.Count -eq 0)) { return $null }
     $keys = New-Object 'System.Collections.Generic.List[string]'
@@ -4534,17 +4663,27 @@ function New-Body($op) {
         return @{ Kind = $kind; CType = $ctype; Text = (ConvertTo-JsonText $value 0 $true); Pairs = $pairs }
     }
     if (($kind -ceq 'form') -or ($kind -ceq 'multipart')) {
+        $encs = $null
+        if ($kind -ceq 'form') { $encs = Get-OaProp $media 'encoding' }
         if (Test-Obj $value) {
             foreach ($k in @($value.Keys)) {
                 $x = $value[$k]
-                if (Test-Arr $x) {
-                    foreach ($it in $x) { $pairs.Add((New-Pair ([string]$k) (Get-ScalarStr $it))) }
+                $e = Get-OaProp $encs ([string]$k)
+                $est = Get-OaProp $e 'style'
+                $eex = Get-OaProp $e 'explode'
+                if ((Test-Obj $e) -and ((Test-Str $est) -or ($eex -is [bool]))) {
+                    # encoding で style / explode を指定した項目はクエリと同じ規則でつなぐ
+                    if (Test-Str $est) { $st = $est } else { $st = 'form' }
+                    if ($eex -is [bool]) { $exv = $eex } else { $exv = ($st -ceq 'form') }
+                    foreach ($pr in (Get-QueryPairs ([string]$k) $x $st $exv)) { $pairs.Add($pr) }
+                } elseif (Test-Arr $x) {
+                    foreach ($it in $x) { $pairs.Add((New-Triple ([string]$k) (Get-ScalarStr $it) $false)) }
                 } else {
-                    $pairs.Add((New-Pair ([string]$k) (Get-ScalarStr $x)))
+                    $pairs.Add((New-Triple ([string]$k) (Get-ScalarStr $x) $false))
                 }
             }
         } else {
-            $pairs.Add((New-Pair 'value' (Get-ScalarStr $value)))
+            $pairs.Add((New-Triple 'value' (Get-ScalarStr $value) $false))
         }
         return @{ Kind = $kind; CType = $ctype; Text = ''; Pairs = $pairs }
     }
@@ -4567,9 +4706,9 @@ function Get-Accept($op) {
         $r = Resolve-Deref $responses[$k] 'response'
         $content = Get-OaProp $r 'content'
         if ((Test-Obj $content) -and ($content.Count -gt 0)) {
-            $mt = [string](@($content.Keys)[0])
-            if ($mt.Contains('*')) { return $null }
-            return $mt.Trim()
+            # 先頭から順に、ワイルドカード（*/* など）でない最初のメディアタイプ
+            foreach ($mk in @($content.Keys)) { $mt = [string]$mk; if (-not $mt.Contains('*')) { return $mt.Trim() } }
+            return $null
         }
     }
     return $null
@@ -4685,12 +4824,11 @@ function New-OperationRequest($info, [string]$Label) {
     $method = $info.Method
     $params = Get-Params $info.Item $op
 
-    # 1. パスパラメータ
+    # 1. パスパラメータ（style: simple / label / matrix。区切り文字はエンコードしない）
     $pathVals = New-Object System.Collections.Specialized.OrderedDictionary
     foreach ($p in $params) {
         if ((Get-OaProp $p 'in') -ceq 'path') {
-            $ex = Get-OaProp $p 'explode'
-            $pathVals[[string]$p['name']] = @{ V = (Get-ParamValue $p); Explode = (($ex -is [bool]) -and $ex) }
+            $pathVals[[string]$p['name']] = @{ V = (Get-ParamText $p); P = $p }
         }
     }
     foreach ($m in $script:PLACEHOLDER_RE.Matches($path)) {
@@ -4698,7 +4836,7 @@ function New-OperationRequest($info, [string]$Label) {
         if ($ph.EndsWith('+', [System.StringComparison]::Ordinal)) { $base = $ph.Substring(0, $ph.Length - 1) } else { $base = $ph }
         if (-not $pathVals.Contains($base)) {
             Add-Warn ('{0}: パス変数 {{{1}}} のパラメータ定義が無いため英数字 8 文字を仮設定しました' -f $Label, $base)
-            $pathVals[$base] = @{ V = (Get-RandStr $script:ALNUM 8); Explode = $false }
+            $pathVals[$base] = @{ V = (Get-RandStr $script:ALNUM 8); P = $null }
         }
     }
     $sb = New-Object System.Text.StringBuilder
@@ -4709,7 +4847,7 @@ function New-OperationRequest($info, [string]$Label) {
         $greedy = $ph.EndsWith('+', [System.StringComparison]::Ordinal)
         if ($greedy) { $base = $ph.Substring(0, $ph.Length - 1) } else { $base = $ph }
         $pv = $pathVals[$base]
-        [void]$sb.Append((Get-PctEncode (Get-SimpleStyle $pv.V $pv.Explode) $greedy))
+        [void]$sb.Append((Get-PathValue $pv.P $pv.V $greedy))
         $pos = $m.Index + $m.Length
     }
     [void]$sb.Append($path.Substring($pos))
@@ -4722,7 +4860,7 @@ function New-OperationRequest($info, [string]$Label) {
         if ((Get-OaProp $p 'in') -cne 'query') { continue }
         $rq = Get-OaProp $p 'required'
         if ($script:OptRequiredOnly -and -not (($rq -is [bool]) -and $rq)) { continue }
-        $v = Get-ParamValue $p
+        $v = Get-ParamText $p
         $style = Get-OaProp $p 'style'
         if (-not (Test-Str $style)) { $style = 'form' }
         $explode = Get-OaProp $p 'explode'
@@ -4749,7 +4887,7 @@ function New-OperationRequest($info, [string]$Label) {
         }
         $rq = Get-OaProp $p 'required'
         if ($script:OptRequiredOnly -and -not (($rq -is [bool]) -and $rq)) { continue }
-        $v = Get-ParamValue $p
+        $v = Get-ParamText $p
         $ex = Get-OaProp $p 'explode'
         $hparams.Add((New-Pair $name (Get-HeaderSafe (Get-SimpleStyle $v (($ex -is [bool]) -and $ex)))))
     }
@@ -4760,7 +4898,7 @@ function New-OperationRequest($info, [string]$Label) {
         if ((Get-OaProp $p 'in') -cne 'cookie') { continue }
         $rq = Get-OaProp $p 'required'
         if ($script:OptRequiredOnly -and -not (($rq -is [bool]) -and $rq)) { continue }
-        $v = Get-ParamValue $p
+        $v = Get-ParamText $p
         $cookies.Add([string]$p['name'] + '=' + (Get-PctEncode (Get-SimpleStyle $v $false) $false))
     }
 
@@ -4778,7 +4916,7 @@ function New-OperationRequest($info, [string]$Label) {
             $bodyText = Get-OaRowPairs $body.Pairs
             if ($body.Kind -ceq 'form') { $headers.Add((New-Pair 'Content-Type' $body.CType)) }
         } else {
-            if ($body.Kind -ceq 'json') { $bodyType = 'json' } else { $bodyType = 'raw' }
+            if (($body.Kind -ceq 'json') -or ($body.Kind -ceq 'xml')) { $bodyType = $body.Kind } else { $bodyType = 'raw' }
             $bodyText = $body.Text
             $headers.Add((New-Pair 'Content-Type' $body.CType))
         }
@@ -4799,6 +4937,7 @@ function New-OperationRequest($info, [string]$Label) {
     return @{
         method = $method; url = $realPath; query = (Get-OaRowPairs $qpairs); headers = [string]::Join("`n", $lines)
         body_type = $bodyType; body = $bodyText; expected_status = [string]::Join(',', $sc.Codes); comment = $comment
+        _server = (Get-OpServerUrl $info)
     }
 }
 
@@ -4968,25 +5107,18 @@ function Read-JsonFile([string]$Path, [string]$PlaceholderValue) {
 }
 
 function Get-OaRowPairs($pairs) {
-    # (名前, 値) の並びを API一覧の「名前=値」（改行区切り）の形にする。
-    # 区切り文字（& 改行 =）・%・$・前後の空白を含むものは、名前・値とも URL エンコードして書く
+    # @(名前, 値) または @(名前, 値, 値がエンコード済みか) の並びを API一覧の「名前=値」（改行区切り）の形にする。
+    # 区切り文字（& 改行 =）・%・$・前後の空白を含むものは、名前・値とも URL エンコードして書く。
+    # %XX を含む組は Normalize-Api がエンコード済みとして扱う
     $out = New-Object 'System.Collections.Generic.List[string]'
     foreach ($pr in $pairs) {
         $k = [string]$pr[0]
         $v = [string]$pr[1]
-        if (($k -ceq $k.Trim()) -and ($v -ceq $v.Trim()) -and -not $k.Contains('=') -and -not [regex]::IsMatch($k + $v, '[&%$\x00-\x1F\x7F]')) {
-            $out.Add($k + '=' + $v)
-            continue
-        }
-        $ek = Get-PctEncode $k $false
-        $ev = Get-PctEncode $v $false
-        if (-not $ev.Contains('%')) {
-            # 値に %XX が無いと JMeter がエンコード済みの名前をもう一度エンコードするため、値もすべて %XX にする
-            $sb = New-Object System.Text.StringBuilder
-            foreach ($b in [System.Text.Encoding]::UTF8.GetBytes($ev)) { [void]$sb.Append('%').Append(([int]$b).ToString('X2', $script:Inv)) }
-            $ev = $sb.ToString()
-        }
-        $out.Add($ek + '=' + $ev)
+        $ek = $k
+        if (-not (($k -ceq $k.Trim()) -and -not $k.Contains('=') -and -not [regex]::IsMatch($k, '[&%$\x00-\x1F\x7F]'))) { $ek = Get-PctEncode $k $false }
+        if ($pr.Count -gt 2 -and [bool]$pr[2]) { $out.Add($ek + '=' + $v) }
+        elseif (($ek -ceq $k) -and ($v -ceq $v.Trim()) -and -not [regex]::IsMatch($v, '[&%$\x00-\x1F\x7F]')) { $out.Add($k + '=' + $v) }
+        else { $out.Add($ek + '=' + (Get-PctEncode $v $false)) }
     }
     return [string]::Join("`n", $out)
 }
@@ -5012,14 +5144,15 @@ function Resolve-OaVars([string]$text, [string]$where) {
     return $text
 }
 
-function Get-OaServerUrl($doc) {
-    # 接続先の既定値: servers[0].url（${public_base_url} は OpenAPI 用設定の値、{変数} は既定値に置換）。http(s) の URL でなければ http://localhost:8080 を前に付ける
-    $servers = Get-OaProp $doc 'servers'
-    $srv = $null
-    if ((Test-Arr $servers) -and ($servers.Count -gt 0) -and (Test-Obj $servers[0])) { $srv = $servers[0] }
+function Get-ServerUrl($owner, [string]$where, [string]$origin = 'http://localhost:8080') {
+    # servers[0].url（${public_base_url} は OpenAPI 用設定の値、{変数} は既定値に置換）。servers が無ければ $null。
+    # http(s) の URL でなければ origin（ドキュメントの接続先は http://localhost:8080）を前に付ける
+    $servers = Get-OaProp $owner 'servers'
+    if (-not ((Test-Arr $servers) -and ($servers.Count -gt 0) -and (Test-Obj $servers[0]))) { return $null }
+    $srv = $servers[0]
     $url = Get-OaProp $srv 'url'
     if (Test-Str $url) { $url = $url.Trim() } else { $url = '' }
-    $url = Resolve-OaVars $url 'servers[0].url'
+    $url = Resolve-OaVars $url $where
     $vars = Get-OaProp $srv 'variables'
     $sb = New-Object System.Text.StringBuilder
     $pos = 0
@@ -5033,7 +5166,27 @@ function Get-OaServerUrl($doc) {
     $url = $sb.ToString().TrimEnd([char]'/')
     if ($url -cmatch '^[Hh][Tt][Tt][Pp][Ss]?://') { return $url }
     if (($url.Length -gt 0) -and -not $url.StartsWith('/', [System.StringComparison]::Ordinal)) { $url = '/' + $url }
-    return 'http://localhost:8080' + $url
+    return $origin + $url
+}
+
+function Get-OaServerUrl($doc) {
+    # 接続先の既定値（ドキュメントの servers[0].url。無ければ http://localhost:8080）
+    $url = Get-ServerUrl $doc 'servers[0].url'
+    if ($null -eq $url) { return 'http://localhost:8080' }
+    return $url
+}
+
+$script:OaDocServer = ''
+function Get-OpServerUrl($info) {
+    # operation → path の順に servers があればその接続先（相対 URL はドキュメントの接続先のホストを使う）。無ければ ''
+    $m = [regex]::Match($script:OaDocServer, '^[A-Za-z][A-Za-z0-9+.\-]*://[^/?#]*')
+    $origin = 'http://localhost:8080'
+    if ($m.Success) { $origin = $m.Value }
+    foreach ($pair in @(@($info.Op, 'operation の servers[0].url'), @($info.Item, 'path の servers[0].url'))) {
+        $url = Get-ServerUrl $pair[0] $pair[1] $origin
+        if ($null -ne $url) { return $url }
+    }
+    return ''
 }
 
 function Load-OpenApi([string]$inputPath) {
@@ -5049,7 +5202,7 @@ function Load-OpenApi([string]$inputPath) {
         $script:SeedValue = (([long]$buf[0] * 16777216L) + ([long]$buf[1] * 65536L) + ([long]$buf[2] * 256L) + [long]$buf[3]) % 1000000000L
     }
     $anyM = $AnyMethod.ToUpperInvariant()
-    if (-not (@('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS') -ccontains $anyM)) { throw (New-ToolError ('-AnyMethod は GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS のいずれかです: ' + $AnyMethod)) }
+    if (-not ($script:KnownMethods -ccontains $anyM)) { throw (New-ToolError ('-AnyMethod は ' + ($script:KnownMethods -join '/') + ' のいずれかです: ' + $AnyMethod)) }
     if (-not ($PlaceholderValue -cmatch '^-?(0|[1-9][0-9]{0,14})([.][0-9]{1,12})?\z')) { throw (New-ToolError ('-PlaceholderValue は JSON の数値（例: 3000、-1、2.5。整数部 15 桁・小数部 12 桁以内）で指定してください: ' + $PlaceholderValue)) }
     $script:OptRequiredOnly = [bool]$RequiredOnly
     $script:OptUseExamples = [bool]$UseExamples
@@ -5068,6 +5221,7 @@ function Load-OpenApi([string]$inputPath) {
     if ((Test-Str $title) -and ($title.Trim().Length -gt 0)) { $title = $title.Trim() } else { $title = 'OpenAPI' }
     $apiVersion = Get-OaProp $infoObj 'version'
     if ((Test-Str $apiVersion) -and ($apiVersion.Trim().Length -gt 0)) { $apiVersion = $apiVersion.Trim() } else { $apiVersion = '-' }
+    $script:OaDocServer = Get-OaServerUrl $doc
 
     Initialize-Rng $script:SeedValue
     $ops = Get-Operations
@@ -5083,11 +5237,11 @@ function Load-OpenApi([string]$inputPath) {
         $row['no'] = ($idx + 1).ToString($script:Inv)
         $row['enabled'] = 'Y'
         $row['name'] = $name
-        $rec = @{ _row = ($idx + 1) }
+        $rec = @{ _row = ($idx + 1); _server = [string]$row['_server'] }
         foreach ($c in $script:Spec.api_columns) {
             $v = ''
             if ($row.ContainsKey($c.key)) { $v = [string]$row[$c.key] }
-            $rec[$c.key] = (Clean $v).Trim()
+            $rec[$c.key] = Api-Cell $c.key $v
         }
         $rec['_fp'] = Get-OaFingerprint $io    # 更新（-UpdateJmx）用: 操作の定義の指紋
         $records.Add($rec)
@@ -5097,7 +5251,7 @@ function Load-OpenApi([string]$inputPath) {
     if ($script:PlaceholderCount -gt 0) { Write-Info '引用符なしの ${...} に入れる数値は -PlaceholderValue で変更できます' }
     Write-Info ('API定義: OpenAPI ' + $ver + '（' + $title + ' ' + $apiVersion + '、' + $records.Count + ' 件）')
     Write-Info ('テストデータの乱数シード: ' + $script:SeedValue + '（-Seed ' + $script:SeedValue + ' を指定すると同じテストデータを再生成できます）')
-    $defaults = @(@('base_url', (Get-OaServerUrl $doc)), @('output_file', ((Get-SafeName $title) + '.jmx')),
+    $defaults = @(@('base_url', $script:OaDocServer), @('output_file', ((Get-SafeName $title) + '.jmx')),
         @('test_plan_name', ($title + ' ' + $apiVersion + '（OpenAPI ' + $ver + '）')))
     return @($records, $defaults)
 }
@@ -5122,7 +5276,7 @@ function Get-OaConf($conf, [string]$k) {
 function Load-OaConfig([string]$path) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw (New-ToolError ('OpenAPI 用設定ファイルが見つかりません: ' + $path)) }
     $tx = Read-TextAuto $path
-    $values = Load-SettingsTable (Rows-FromCsv (Parse-Csv $tx[0])) ([System.IO.Path]::GetFileName($path))
+    $values = Load-SettingsTable (Rows-FromCsv (Parse-Csv $tx[0] ',' ([System.IO.Path]::GetFileName($path)))) ([System.IO.Path]::GetFileName($path))
     $known = New-Object System.Collections.Generic.List[string]
     foreach ($c in $script:Spec.openapi_config) { $known.Add([string]$c.key) }
     $keys = New-Object System.Collections.Generic.List[string]
@@ -5135,6 +5289,41 @@ function Load-OaConfig([string]$path) {
     }
     Write-Info ('OpenAPI 用設定: ' + $path)
     return ,$conf
+}
+$script:OaConn = @('', '', '')    # OpenAPI 用設定の PROTOCOL / HOST / PORT（Apply-OaConfig で確認した値）
+function Get-OaConnectionUrl([string]$base, $conn) {
+    # 接続先の URL のうち、OpenAPI 用設定で記入された PROTOCOL / HOST / PORT だけを置き換える
+    $proto = [string]$conn[0]
+    $hostName = [string]$conn[1]
+    $port = [string]$conn[2]
+    if (-not ($proto -or $hostName -or $port)) { return $base }
+    if (-not [regex]::IsMatch($base, $script:UrlRe)) { $base = 'https://' + $base }    # Normalize-Api と同じく、スキームが無い場合は https とみなす
+    $m = [regex]::Match($base, $script:UrlRe)
+    $p = Parse-Url $base
+    if (-not ($m.Success -and $null -ne $p)) { return $base }
+    if (-not $proto) { $proto = $p.scheme }
+    if (-not $hostName) { $hostName = $p.host }
+    $url = $proto + '://' + $hostName
+    if ($port) { $url += ':' + $port }
+    return $url + $base.Substring($m.Groups[2].Index + $m.Groups[2].Length)
+}
+function Apply-OaServers($records, [bool]$explicitBase) {
+    # operation / path の servers の接続先を API一覧の URL に付ける（設定ファイルで base_url を指定した場合は使わない）
+    $used = New-Object 'System.Collections.Generic.List[object]'
+    foreach ($r in $records) { if ($r.ContainsKey('_server') -and $r['_server']) { $used.Add($r) } }
+    if ($used.Count -eq 0) { return }
+    if ($explicitBase) {
+        Write-Info ('operation / path の servers（' + $used.Count + ' 件）は、設定ファイルで base_url を指定したため使いません')
+        return
+    }
+    $urls = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($r in $used) {
+        $srv = Get-OaConnectionUrl ([string]$r['_server']) $script:OaConn
+        $r['url'] = $srv.TrimEnd([char]'/') + [string]$r['url']
+        if (-not $urls.Contains($srv)) { $urls.Add($srv) }
+    }
+    $urls.Sort([System.StringComparer]::Ordinal)
+    Write-Info ('operation / path の servers を接続先に使います: ' + $used.Count + ' 件（' + ($urls.ToArray() -join ', ') + '）')
 }
 function Apply-OaConfig($raw, $conf, [string]$outDir) {
     # 接続先: 指定した項目だけ base_url を置き換える（空欄の PROTOCOL / HOST は OpenAPI 定義・設定ファイルの値のまま、空欄の PORT は未設定）
@@ -5153,20 +5342,12 @@ function Apply-OaConfig($raw, $conf, [string]$outDir) {
         Write-Warn ('OpenAPI 用設定 PORT: 「' + $port + '」は 1～65535 の数値ではないため無視します')
         $port = ''
     }
+    $script:OaConn = @($proto, $hostName, $port)
     if ($proto -or $hostName -or $port) {
         $base = ''
         if ($raw.ContainsKey('base_url')) { $base = [string]$raw['base_url'] }
-        if (-not [regex]::IsMatch($base, $script:UrlRe)) { $base = 'https://' + $base }    # Normalize-Api と同じく、スキームが無い場合は https とみなす
-        $m = [regex]::Match($base, $script:UrlRe)
-        $p = Parse-Url $base
-        if ($m.Success -and $null -ne $p) {
-            if (-not $proto) { $proto = $p.scheme }
-            if (-not $hostName) { $hostName = $p.host }
-            $url = $proto + '://' + $hostName
-            if ($port) { $url += ':' + $port }
-            $raw['base_url'] = $url + $base.Substring($m.Groups[2].Index + $m.Groups[2].Length)
-            Write-Info ('設定 base_url: ' + $raw['base_url'] + '（OpenAPI 用設定の PROTOCOL / HOST / PORT を反映）')
-        }
+        $raw['base_url'] = Get-OaConnectionUrl $base $script:OaConn
+        Write-Info ('設定 base_url: ' + $raw['base_url'] + '（OpenAPI 用設定の PROTOCOL / HOST / PORT を反映）')
     }
     # HTTP ヘッダ: 共通ヘッダに追加し、同じ名前のヘッダは置き換える。TOKEN_DIR があれば Authorization: Bearer ${ACCESS_TOKEN}
     $add = Parse-Headers (Get-OaConf $conf 'HEADERS') 'OpenAPI 用設定 HEADERS'
@@ -5289,6 +5470,12 @@ function Get-Aliases {
     }
     return ,$m
 }
+function Api-Cell([string]$key, [string]$value) {
+    # API一覧のセルの値。リクエストボディは前後の空白・改行も送信する内容のため残す（空白だけの場合は空欄）
+    $value = Clean $value
+    if ($key -ceq 'body' -and $value.Trim()) { return $value }
+    return $value.Trim()
+}
 function Load-ApiTable($rows, [string]$source) {
     $alias = Get-Aliases
     $headerAt = -1
@@ -5317,7 +5504,7 @@ function Load-ApiTable($rows, [string]$source) {
         foreach ($c in $script:Spec.api_columns) {
             $ci = -1
             if ($colmap.ContainsKey($c.key)) { $ci = $colmap[$c.key] }
-            if ($ci -ge 0 -and $ci -lt $cells.Length) { $rec[$c.key] = (Clean $cells[$ci]).Trim() } else { $rec[$c.key] = '' }
+            if ($ci -ge 0 -and $ci -lt $cells.Length) { $rec[$c.key] = Api-Cell $c.key $cells[$ci] } else { $rec[$c.key] = '' }
         }
         $records.Add($rec)
     }
@@ -5380,10 +5567,12 @@ function Load-Input([string]$inputPath, [string]$settingsPath) {
             }
         }
         if ($null -eq $found) { throw (New-ToolError ('「' + $script:Tpl.api_sheet + '」シートが見つかりません: ' + $inputPath)) }
+        Assert-XlsxSheet $inputPath $found[0]
         $records = Load-ApiTable $found[1] ($base + '（' + $found[0] + 'シート）')
         if (-not $settingsPath) {
             $sf = Find-Sheet $sheets @($script:Tpl.settings_sheet, 'settings')
             if ($null -ne $sf) {
+                Assert-XlsxSheet $inputPath $sf[0]
                 $raw = Load-SettingsTable $sf[1] ($base + '（' + $sf[0] + 'シート）')
                 Write-Info ('設定: 「' + $sf[0] + '」シートを使用します')
             } else {
@@ -5393,7 +5582,7 @@ function Load-Input([string]$inputPath, [string]$settingsPath) {
         Write-Info ('API定義: 「' + $found[0] + '」シート（' + $records.Count + ' 件）')
     } elseif ($ext -ceq '.csv' -or $ext -ceq '.txt') {
         $tx = Read-TextAuto $inputPath
-        $records = Load-ApiTable (Rows-FromCsv (Parse-Csv $tx[0])) $base
+        $records = Load-ApiTable (Rows-FromCsv (Parse-Csv $tx[0] ',' $base)) $base
         Write-Info ('API定義: CSV（文字コード ' + $tx[1] + '、' + $records.Count + ' 件）')
         if (-not $settingsPath) {
             $cand = [System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($inputPath), [System.IO.Path]::GetFileNameWithoutExtension($inputPath) + '_settings.csv')
@@ -5431,14 +5620,16 @@ function Load-Input([string]$inputPath, [string]$settingsPath) {
             $sheets = Read-Xlsx $settingsPath
             $sf = Find-Sheet $sheets @($script:Tpl.settings_sheet, 'settings')
             if ($null -eq $sf) { throw (New-ToolError ('「' + $script:Tpl.settings_sheet + '」シートが見つかりません: ' + $settingsPath)) }
+            Assert-XlsxSheet $settingsPath $sf[0]
             $raw = Load-SettingsTable $sf[1] ([System.IO.Path]::GetFileName($settingsPath))
         } else {
             $tx = Read-TextAuto $settingsPath
-            $raw = Load-SettingsTable (Rows-FromCsv (Parse-Csv $tx[0])) ([System.IO.Path]::GetFileName($settingsPath))
+            $raw = Load-SettingsTable (Rows-FromCsv (Parse-Csv $tx[0] ',' ([System.IO.Path]::GetFileName($settingsPath)))) ([System.IO.Path]::GetFileName($settingsPath))
         }
         Write-Info ('設定: ' + $settingsPath)
     }
     if ($null -eq $raw) { $raw = New-Object 'System.Collections.Generic.Dictionary[string,string]' }
+    $explicitBase = ($raw.ContainsKey('base_url') -and [bool]$raw['base_url'])
     foreach ($d in $oaDefaults) {
         if (-not $raw.ContainsKey($d[0]) -or -not $raw[$d[0]]) {
             $raw[$d[0]] = [string]$d[1]
@@ -5450,6 +5641,7 @@ function Load-Input([string]$inputPath, [string]$settingsPath) {
         if (-not $outBase) { $outBase = 'output' }
         Apply-OaConfig $raw $oaConf $outBase
     }
+    if ($ext -ceq '.json') { Apply-OaServers $records $explicitBase }
     # 認可（security）の警告: OpenAPI 用設定（-OpenApiConfig）・設定ファイル（-SettingsFile）のどちらにも Authorization の指定が無い場合だけ表示する
     if ($ext -ceq '.json' -and $script:OaNeedsAuth) {
         $ch = ''
@@ -5471,9 +5663,21 @@ function Parse-Bool([string]$v) {
 function Parse-OnOff([string]$v) {
     $k = NormalizeKey $v
     if (@('on', 'y', 'yes', 'true', '1', '有効', '生成') -ccontains $k) { return 'ON' }
-    if (@('off', 'n', 'no', 'false', '0', 'なし', '生成しない', '不要') -ccontains $k) { return 'OFF' }
+    if (@('off', 'n', 'no', 'false', '0', 'なし', '生成しない', '不要', 'none') -ccontains $k) { return 'OFF' }
     if (@('disable', 'disabled', '無効', '無効化') -ccontains $k) { return 'DISABLE' }
     return $null
+}
+# 数値の設定の範囲（ここに無い設定は 0～2147483647）
+$script:IntRanges = @{
+    threads = @(1L, 2147483647L); throughput_per_min = @(1L, 2147483647L); loops = @(-1L, 2147483647L)
+    counter_start = @([long]::MinValue, [long]::MaxValue); counter_increment = @([long]::MinValue, [long]::MaxValue)
+    random_min = @([long]::MinValue, [long]::MaxValue); random_max = @([long]::MinValue, [long]::MaxValue)
+}
+function Test-IntRange([string]$v, $range) {
+    # 範囲内の整数か（long に収まらない桁数も範囲外）
+    $n = 0L
+    if (-not [long]::TryParse($v, [System.Globalization.NumberStyles]::AllowLeadingSign, $script:Inv, [ref]$n)) { return $false }
+    return ($n -ge $range[0] -and $n -le $range[1])
 }
 function Resolve-Settings($raw) {
     $known = New-Object 'System.Collections.Generic.HashSet[string]'
@@ -5493,6 +5697,12 @@ function Resolve-Settings($raw) {
         if ($t -ceq 'int') {
             if ($v -cne '' -and -not [regex]::IsMatch($v, '^-?[0-9]+$')) {
                 Write-Warn ('設定 ' + $k + ': 「' + $v + '」は数値ではないため既定値「' + $def + '」を使用します')
+                $v = $def
+            }
+            $range = @(0L, 2147483647L)
+            if ($script:IntRanges.ContainsKey($k)) { $range = $script:IntRanges[$k] }
+            if ($v -cne '' -and -not (Test-IntRange $v $range)) {
+                Write-Warn ('設定 ' + $k + ': 「' + $v + '」は ' + $range[0].ToString($script:Inv) + '～' + $range[1].ToString($script:Inv) + ' の範囲ではないため既定値「' + $def + '」を使用します')
                 $v = $def
             }
             $cfg[$k] = $v
@@ -5521,7 +5731,16 @@ function Resolve-Settings($raw) {
             $cfg[$k] = $v
         }
     }
+    if ([long]$cfg['random_min'] -gt [long]$cfg['random_max']) {
+        Write-Warn ('設定 random_min（' + $cfg['random_min'] + '）が random_max（' + $cfg['random_max'] + '）より大きいため、既定値（' +
+            (Setting-Default 'random_min') + ' / ' + (Setting-Default 'random_max') + '）を使用します')
+        $cfg['random_min'] = Setting-Default 'random_min'
+        $cfg['random_max'] = Setting-Default 'random_max'
+    }
     $cfg['_common_headers'] = Parse-Headers $cfg['common_headers'] '設定 common_headers'
+    if ($cfg['cookie_manager'] -ceq 'ON') {
+        foreach ($h in $cfg['_common_headers']) { if (([string]$h[0]).ToLowerInvariant() -ceq 'cookie') { Write-Warn ('設定 common_headers: ' + $script:CookieHeaderNote); break } }
+    }
     if ([string]$cfg['access_token_dir'] -cne '') {
         $hasAuth = $false
         foreach ($h in $cfg['_common_headers']) { if (([string]$h[0]).ToLowerInvariant() -ceq 'authorization') { $hasAuth = $true } }
@@ -5536,27 +5755,58 @@ function Resolve-Settings($raw) {
 }
 
 # ----------------------------------------------------------------------------- API normalisation
-$script:UrlRe = '^([A-Za-z][A-Za-z0-9+.\-]*)://([^/?#]*)([^?#]*)(?:\?([^#]*))?(?:#.*)?$'
+$script:UrlRe = '^([A-Za-z][A-Za-z0-9+.\-]*|\$\{[^}]+\})://([^/?#]*)([^?#]*)(?:\?([^#]*))?(?:#.*)?$'
 $script:VarRe = '^[A-Za-z_][A-Za-z0-9_]*$'
 $script:Unreserved = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
 $script:PathSafe = $script:Unreserved + "/:@!`$&'()*+,;="
-$script:QueryInArgs = @('GET', 'DELETE', 'OPTIONS')
-$script:NoBody = @('GET', 'DELETE', 'OPTIONS', 'HEAD')
+# エンコード済み（%XX を含む）のクエリ・フォームの名前と値で、そのまま送る文字（URL に使える文字のうち、& = + # % 以外）
+$script:QuerySafe = $script:Unreserved + "!`$'()*,;:@/?"
+$script:PctRe = '%[0-9A-Fa-f]{2}'
+$script:KnownMethods = @('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'TRACE')
+# クエリを「Parameters」タブに置くメソッド。JMeter 5.6.3 は DELETE の Parameters を URL とボディの両方に送り、
+# HEAD / TRACE の Parameters は送らないため、GET 以外はクエリを URL に付ける
+$script:QueryInArgs = @('GET')
+$script:NoBody = @('GET', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE')
+# JMeter はクッキー管理がその URL へ送るクッキーを持っていると、ヘッダの Cookie をそのクッキーで置き換える
+$script:CookieHeaderNote = ('ヘッダの Cookie は、クッキー管理（HTTP Cookie Manager）がこの URL へ送るクッキー（設定 cookies・応答の Set-Cookie）を' +
+    '持っていると置き換えられ、送信されません。クッキーは設定 cookies に記入するか、設定 cookie_manager を OFF にしてください')
 
 function Parse-Url([string]$url) {
+    # 戻り値: URL の各部分（error はスキップする理由、userinfo は取り除いた認証情報）。URL の形でなければ $null
     $m = [regex]::Match($url, $script:UrlRe)
     if (-not $m.Success) { return $null }
     $auth = $m.Groups[2].Value
     $hostName = $auth
     $port = ''
-    $pm = [regex]::Match($auth, '^(.*):([0-9]+|\$\{[^}]*\})$')
-    if ($pm.Success) { $hostName = $pm.Groups[1].Value; $port = $pm.Groups[2].Value }
-    if ($hostName.Contains('@')) { $parts = $hostName.Split('@'); $hostName = $parts[$parts.Length - 1] }
+    $userinfo = ''
+    $at = $auth.LastIndexOf('@')
+    if ($at -ge 0) { $userinfo = $auth.Substring(0, $at); $hostName = $auth.Substring($at + 1) }
+    $pm = [regex]::Match($hostName, '^(.*):([0-9]*|\$\{[^}]*\})$')
+    if ($pm.Success) {
+        $h0 = $pm.Groups[1].Value
+        if (-not $h0.EndsWith(']', $script:Ord) -and $h0.Contains(':') -and -not $h0.StartsWith('[', $script:Ord)) { $pm = $null }    # 角かっこの無い IPv6 アドレス
+    } else { $pm = $null }
+    if ($null -ne $pm) { $hostName = $pm.Groups[1].Value; $port = $pm.Groups[2].Value }
+    $scheme = $m.Groups[1].Value
+    if (-not $scheme.StartsWith('${', $script:Ord)) { $scheme = $scheme.ToLowerInvariant() }
+    $err = ''
+    if (-not (@('http', 'https') -ccontains $scheme) -and -not $scheme.StartsWith('${', $script:Ord)) {
+        $err = 'http / https 以外の URL には対応していません'
+    } elseif (-not [regex]::IsMatch([regex]::Replace($hostName, '\$\{[^}]*\}', 'v'), '^(\[[0-9A-Fa-f:.]+\]|[^\s/?#\[\]@:]+)\z')) {
+        $err = 'URL のホスト名が正しくありません'
+    } elseif ([regex]::IsMatch($port, '^[0-9]+\z') -and -not (Test-PortRange $port)) {
+        $err = 'URL のポート番号は 1～65535 で指定してください'
+    }
     $path = $m.Groups[3].Value
     if ($path -ceq '') { $path = '/' }
     $query = ''
     if ($m.Groups[4].Success) { $query = $m.Groups[4].Value }
-    return @{ scheme = $m.Groups[1].Value.ToLowerInvariant(); host = $hostName; port = $port; path = $path; query = $query }
+    return @{ scheme = $scheme; host = $hostName; port = $port; userinfo = $userinfo; error = $err; path = $path; query = $query }
+}
+function Test-PortRange([string]$port) {
+    if ($port.Length -gt 5) { return $false }
+    $n = [int]$port
+    return ($n -ge 1 -and $n -le 65535)
 }
 function Close-Brace([string]$s, [int]$i) {
     $depth = 0
@@ -5590,7 +5840,60 @@ function Pct-Encode([string]$s, [string]$safe) {
     }
     return $out.ToString()
 }
-function Needs-Encode([string]$v) { return -not [regex]::IsMatch($v, '%[0-9A-Fa-f]{2}') }
+function Pct-Decode([string]$s) {
+    # %XX（UTF-8）を戻す。UTF-8 として読めない場合は元の文字列のまま
+    if (-not [regex]::IsMatch($s, $script:PctRe)) { return $s }
+    $bytes = New-Object System.Collections.Generic.List[byte]
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    $i = 0
+    while ($i -lt $s.Length) {
+        if ($s[$i] -ceq '%' -and $i + 2 -lt $s.Length + 0 -and [regex]::IsMatch($s.Substring($i, [Math]::Min(3, $s.Length - $i)), '^%[0-9A-Fa-f]{2}')) {
+            $bytes.Add([Convert]::ToByte($s.Substring($i + 1, 2), 16)); $i += 3; continue
+        }
+        $len = 1
+        if ([char]::IsHighSurrogate($s[$i]) -and $i + 1 -lt $s.Length -and [char]::IsLowSurrogate($s[$i + 1])) { $len = 2 }
+        $bytes.AddRange($utf8.GetBytes($s.Substring($i, $len)))
+        $i += $len
+    }
+    try { return (New-Object System.Text.UTF8Encoding($false, $true)).GetString($bytes.ToArray()) } catch { return $s }
+}
+function Plus-ToSpace([string]$s) {
+    # URL のクエリの + は空白を表すため %20 にする（${...} の中はそのまま）
+    $out = New-Object System.Text.StringBuilder
+    $i = 0
+    while ($i -lt $s.Length) {
+        if ($s[$i] -ceq '$' -and $i + 1 -lt $s.Length -and $s[$i + 1] -ceq '{') {
+            $j = Close-Brace $s $i
+            if ($j -gt 0) { [void]$out.Append($s.Substring($i, $j + 1 - $i)); $i = $j + 1; continue }
+        }
+        if ($s[$i] -ceq '+') { [void]$out.Append('%20') } else { [void]$out.Append($s[$i]) }
+        $i++
+    }
+    return $out.ToString()
+}
+function Get-RequestArguments($pairs, [bool]$multipart = $false) {
+    # 名前・値の組 → JMeter の引数 @(名前, 値, always_encode)。JMeter は名前と値を同じ設定でエンコードするため、
+    # 名前か値に %XX がある組はエンコード済みとして残りの文字だけをエンコードし、JMeter のエンコードを使わない。
+    # multipart は %XX を戻した文字列をそのまま送る
+    $out = New-Object System.Collections.Generic.List[object]
+    foreach ($x in $pairs) {
+        $k = [string]$x[0]
+        $v = [string]$x[1]
+        if ($multipart) { $out.Add(@((Pct-Decode $k), (Pct-Decode $v), $false)) }
+        elseif ([regex]::IsMatch($k + $v, $script:PctRe)) { $out.Add(@((Pct-Encode $k $script:QuerySafe), (Pct-Encode $v $script:QuerySafe), $false)) }
+        else { $out.Add(@($k, $v, $true)) }
+    }
+    return ,$out
+}
+function Get-QueryString($pairs) {
+    # URL に付けるクエリ文字列（エンコード済みの組は構造の区切り文字をそのまま残す）
+    $bits = New-Object System.Collections.Generic.List[string]
+    foreach ($x in (Get-RequestArguments $pairs)) {
+        if ($x[2]) { $bits.Add((Pct-Encode $x[0] $script:Unreserved) + '=' + (Pct-Encode $x[1] $script:Unreserved)) }
+        else { $bits.Add($x[0] + '=' + $x[1]) }
+    }
+    return ($bits.ToArray() -join '&')
+}
 function Split-Pairs([string]$text) {
     $out = New-Object System.Collections.Generic.List[object]
     foreach ($line in (NormNl $text).Split([char]10)) {
@@ -5677,8 +5980,8 @@ function Normalize-Api($rec, [int]$index, $cfg) {
     }
     $method = ([string]$rec['method']).ToUpperInvariant()
     if (-not $method) { Write-Warn ($where + ': メソッドが空のため GET として扱います'); $method = 'GET' }
-    if (-not (@('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS') -ccontains $method)) {
-        Write-Warn ($where + ': メソッド「' + $method + '」はそのまま設定します（GET / POST 以外は動作を確認してください）')
+    if (-not ($script:KnownMethods -ccontains $method)) {
+        Write-Warn ($where + ': メソッド「' + $method + '」はそのまま設定します（' + ($script:KnownMethods -join ' / ') + ' 以外は動作を確認してください）')
     }
     $full = $url
     if ($url.StartsWith('/', $script:Ord)) {
@@ -5692,24 +5995,33 @@ function Normalize-Api($rec, [int]$index, $cfg) {
         Write-Warn ($where + ': URL にスキーム（https://）が無いため https として扱います')
         $full = 'https://' + $full
     }
+    if ($p.error) { Write-Warn ($where + ': ' + $p.error + '（スキップします）: ' + $url); return $null }
+    if ($p.userinfo) {
+        Write-Warn ($where + ': URL の認証情報（ユーザー名:パスワード@）は送信されないため取り除きます。' +
+            'Basic 認証はヘッダに「Authorization: Basic ...」を記入してください')
+        $at = $full.IndexOf($p.userinfo + '@', $script:Ord)
+        $full = $full.Substring(0, $at) + $full.Substring($at + $p.userinfo.Length + 1)
+    }
     $pairs = New-Object System.Collections.Generic.List[object]
-    foreach ($x in (Split-Pairs $p.query)) { $pairs.Add($x) }
+    foreach ($x in (Split-Pairs $p.query)) { $pairs.Add(@((Plus-ToSpace $x[0]), (Plus-ToSpace $x[1]))) }
     foreach ($x in (Split-Pairs $rec['query'])) { $pairs.Add($x) }
     $path = Pct-Encode $p.path $script:PathSafe
     $args2 = New-Object System.Collections.Generic.List[object]
     if ($script:QueryInArgs -ccontains $method) {
-        foreach ($x in $pairs) { $args2.Add(@($x[0], $x[1], (Needs-Encode $x[1]))) }
+        $args2 = Get-RequestArguments $pairs
     } elseif ($pairs.Count -gt 0) {
-        $qs = New-Object System.Collections.Generic.List[string]
-        foreach ($x in $pairs) { $qs.Add((Pct-Encode $x[0] $script:Unreserved) + '=' + (Pct-Encode $x[1] $script:Unreserved)) }
-        $path += '?' + ($qs.ToArray() -join '&')
+        $path += '?' + (Get-QueryString $pairs)
     }
     $headers = Parse-Headers $rec['headers'] $where
+    if ($cfg['cookie_manager'] -ceq 'ON') {
+        foreach ($h in $headers) { if (([string]$h[0]).ToLowerInvariant() -ceq 'cookie') { Write-Warn ($where + ': ' + $script:CookieHeaderNote); break } }
+    }
     $body = [string]$rec['body']
+    if (-not $body.Trim()) { $body = '' }
     $bt = ([string]$rec['body_type']).ToLowerInvariant()
     if (-not $bt) { $bt = 'auto' }
     if (-not (@('auto', 'json', 'form', 'raw', 'xml', 'multipart') -ccontains $bt)) {
-        Write-Warn ($where + ': ボディ形式「' + $rec['body_type'] + '」は auto / json / form / raw のいずれかで記入してください（auto として扱います）')
+        Write-Warn ($where + ': ボディ形式「' + $rec['body_type'] + '」は auto / json / form / raw / xml / multipart のいずれかで記入してください（auto として扱います）')
         $bt = 'auto'
     }
     $kind = ''
@@ -5729,8 +6041,7 @@ function Normalize-Api($rec, [int]$index, $cfg) {
         }
     }
     if ($kind -ceq 'form' -or $kind -ceq 'multipart') {
-        $args2 = New-Object System.Collections.Generic.List[object]
-        foreach ($x in (Split-Pairs $body)) { $args2.Add(@($x[0], $x[1], (Needs-Encode $x[1]))) }
+        $args2 = Get-RequestArguments (Split-Pairs $body) ($kind -ceq 'multipart')
     }
     if ($kind -ceq 'json') { $body = [regex]::Replace($body, '("(?:[^"\\]|\\.)*")|\u3000', { param($m) if ($m.Groups[1].Success) { $m.Value } else { ' ' } }) }
     $ctype = ''
@@ -5887,7 +6198,7 @@ function Assign-Hosts($cfg, $apis) {
     }
     if ($cfg['base_url']) {
         $p = Parse-Url $cfg['base_url']
-        if ($null -ne $p -and -not ($p.scheme + $p.host + $p.port).Contains('${')) { [void](& $add $p.scheme $p.host $p.port) }
+        if ($null -ne $p -and -not $p.error -and -not ($p.scheme + $p.host + $p.port).Contains('${')) { [void](& $add $p.scheme $p.host $p.port) }
     }
     foreach ($a in $apis) {
         if (($a.scheme + $a.host + $a.port).Contains('${')) { $a.hostref = $null }
@@ -6141,7 +6452,10 @@ function Get-CsvVariables($cfg, [string]$outDir) {
     $first = $null
     if (Test-DataPath $full 'Leaf') {
         $tx = Read-TextAuto $full
-        $rows = Parse-Csv $tx[0] $delim
+        try { $rows = Parse-Csv $tx[0] $delim $full } catch [System.InvalidOperationException] {
+            Write-Warn ('CSV の 1 行目（変数名）を読み取れません: ' + $_.Exception.Message)
+            $rows = New-Object System.Collections.Generic.List[object]
+        }
         if ($rows.Count -gt 0) {
             $first = New-Object System.Collections.Generic.List[string]
             foreach ($c in $rows[0]) { $first.Add($c.Trim()) }
@@ -6174,16 +6488,44 @@ function Safe-FileName([string]$name, [string]$default) {
     $parts = $name.Replace('\', '/').Split([char]'/')
     $base = $parts[$parts.Length - 1]
     $s = [regex]::Replace($base, '[^A-Za-z0-9._-]', '_').Trim([char[]]@('.', '_'))
+    if ($s -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)') { $s = '_' + $s }    # Windows の予約名（CON.jmx など）は作れないため
     if (-not $s) { return $default }
     return $s
 }
-function Write-Jmx([string]$path, [string]$text) {
-    if (Test-Path -LiteralPath $path) {
-        $bak = $path + '.' + (Get-Stamp) + '.bak'
-        Move-Item -LiteralPath $path -Destination $bak
-        Write-Info ('既存の JMX を退避しました: ' + $bak)
+function Get-UniqueBackup([string]$path) {
+    # 退避ファイルの名前「名前.日時.bak」（同じ秒の退避と重ならないよう、必要なら連番を付ける）
+    $stamp = Get-Stamp
+    $bak = $path + '.' + $stamp + '.bak'
+    $k = 2
+    while ([System.IO.File]::Exists((FullPath $bak))) { $bak = $path + '.' + $stamp + '_' + $k + '.bak'; $k++ }
+    return $bak
+}
+function Replace-File([string]$path, [byte[]]$data, [string]$label) {
+    # データを一時ファイルに書き終えてから、既存のファイルを「名前.日時.bak」に退避して置き換える
+    # （書き込みに失敗しても既存のファイルはそのまま残る）。戻り値: 退避したファイル（無ければ $null）
+    $full = FullPath $path
+    $tmp = $full + '.' + $PID + '.tmp'
+    $bak = $null
+    try {
+        Write-BytesFile $tmp $data
+        try {
+            if ([System.IO.File]::Exists($full)) {
+                $bak = Get-UniqueBackup $path
+                [System.IO.File]::Move($full, (FullPath $bak))
+            }
+            [System.IO.File]::Move($tmp, $full)
+        } catch [System.IO.IOException], [System.UnauthorizedAccessException] {
+            if ($bak -and -not [System.IO.File]::Exists($full)) { [System.IO.File]::Move((FullPath $bak), $full); $bak = $null }
+            throw (New-ToolError ('ファイルを置き換えられません（他のアプリで開いていないか確認してください）: ' + $path + ' (' + $_.Exception.Message + ')'))
+        }
+    } finally {
+        if ([System.IO.File]::Exists($tmp)) { [System.IO.File]::Delete($tmp) }
     }
-    Write-TextFile $path $text
+    if ($bak) { Write-Info ($label + 'を退避しました: ' + $bak) }
+    return $bak
+}
+function Write-Jmx([string]$path, [string]$text) {
+    [void](Replace-File $path ((New-Object System.Text.UTF8Encoding($false)).GetBytes($text)) '既存の JMX ')
 }
 function Invoke-Generate {
     if (-not $InputFile) { throw (New-ToolError '入力ファイルを -InputFile（-i）で指定してください（例: -i input\api_definition.xlsx）') }
@@ -6279,7 +6621,7 @@ function Invoke-Manual {
 
 # =============================================================================
 #  追加機能（RHEL 版 jmeter_api_tool.sh の同じ名前の処理と同一）
-#   1. add-curl   : curl コマンドを解析して API一覧（Excel / CSV）に 1 行追加する
+#   1. add-curl   : curl コマンドを解析して API一覧（Excel / CSV）に追加する（1 コマンド = 1 行）
 #   2. linux-cmd  : Linux サーバで JMeter の CLI を実行するコマンドと各パラメータの説明をテキストファイルに出力する
 #   3. generate -UpdateJmx: 既存の JMX を、入力ファイル（Excel / CSV / OpenAPI）との差分箇所だけ更新し、更新箇所を表示する
 # =============================================================================
@@ -6317,7 +6659,7 @@ foreach ($p in @(
         @('cert key', 'クライアント証明書は JMeter の system.properties（javax.net.ssl.keyStore）で設定してください'),
         @('digest ntlm negotiate anyauth', 'この認証方式は JMeter の HTTP Authorization Manager で設定してください'),
         @('config', 'curl の設定ファイル（-K）は読み込みません'),
-        @('next', '--next 以降の 2 つ目のリクエストは読み込みません（add-curl で追加するのは 1 行です）'),
+        @('next', '--next 以降のリクエストは読み込みません（別の curl コマンドとして書いてください）'),
         @('resolve connect-to', '名前解決の指定は JMeter の DNS Cache Manager で設定してください'),
         @('unix-socket abstract-unix-socket', 'UNIX ドメインソケットは JMeter の HTTP リクエストでは使えません'),
         @('aws-sigv4', 'AWS の署名は前処理スクリプトなどで作成してください'),
@@ -6325,11 +6667,14 @@ foreach ($p in @(
     foreach ($k in $p[0].Split(' ')) { $script:CurlHints[$k] = $p[1] }
 }
 
-function Split-Curl([string]$text) {
-    # curl コマンドの文字列を引数に分ける。bash の引用符（' " $'...'）と \ のエスケープ、行末の \ ^ ` による継続、
-    # Windows（cmd）の ^ のエスケープに対応する。; && | の後ろ（別のコマンド）は読まない
+$script:CurlNextLineRe = New-Object System.Text.RegularExpressions.Regex('\G[ \t\n]*curl(\.exe)?([ \t\n]|$)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+function Split-CurlCommands([string]$text) {
+    # curl コマンドの文字列 → コマンドごとの引数の一覧。bash の引用符（' " $'...'）と \ のエスケープ、行末の \ ^ ` による継続、
+    # Windows（cmd）の ^ のエスケープに対応する。; & && | と、行の先頭の curl で別のコマンドに分ける
+    # （ブラウザの「Copy all as cURL」のように複数のコマンドを並べたもの）
     $s = NormNl $text
     if ($s.Contains('^"') -or [regex]::IsMatch($s, '\^[ \t]*\n')) { return , (Split-CurlCmd $s) }
+    $cmds = New-Object 'System.Collections.Generic.List[object]'
     $toks = New-Object 'System.Collections.Generic.List[string]'
     $cur = New-Object System.Text.StringBuilder
     $have = $false
@@ -6339,6 +6684,9 @@ function Split-Curl([string]$text) {
         $c = $s[$i]
         if ($c -ceq ' ' -or $c -ceq "`t" -or $c -ceq "`n") {
             if ($have) { $toks.Add($cur.ToString()); [void]$cur.Clear(); $have = $false }
+            if ($c -ceq "`n" -and $toks.Count -gt 0 -and $script:CurlNextLineRe.IsMatch($s, $i + 1)) {
+                $cmds.Add($toks); $toks = New-Object 'System.Collections.Generic.List[string]'
+            }
             $i++
         } elseif (($c -ceq '`' -or $c -ceq '^') -and [regex]::IsMatch($s.Substring($i + 1, [Math]::Min(79, $n - $i - 1)), '^[ \t]*(\n|$)')) {
             $j = $s.IndexOf([char]10, $i)
@@ -6371,8 +6719,8 @@ function Split-Curl([string]$text) {
             $i++
             $have = $true
         } elseif (';&|'.IndexOf($c) -ge 0 -and -not $have) {
-            Write-Warn ('curl: 「' + $s.Substring($i, [Math]::Min(2, $n - $i)).Trim() + '」以降は別のコマンドのため読みません')
-            break
+            if ($toks.Count -gt 0) { $cmds.Add($toks); $toks = New-Object 'System.Collections.Generic.List[string]' }
+            $i++
         } elseif ($c -ceq '#' -and -not $have) {
             $j = $s.IndexOf([char]10, $i)
             if ($j -lt 0) { $i = $n } else { $i = $j }
@@ -6383,7 +6731,8 @@ function Split-Curl([string]$text) {
         }
     }
     if ($have) { $toks.Add($cur.ToString()) }
-    return , $toks
+    if ($toks.Count -gt 0) { $cmds.Add($toks) }
+    return , $cmds
 }
 function Read-CurlAnsi([string]$s, [int]$i) {
     # $'...' の中身（$i は ' の次の位置）。\xHH・\NNN はバイトとして集め、UTF-8 で読めない場合は Latin-1 として読む
@@ -6449,6 +6798,7 @@ function Split-CurlCmd([string]$s0) {
         }
     }
     $s = $t.ToString()
+    $cmds = New-Object 'System.Collections.Generic.List[object]'
     $toks = New-Object 'System.Collections.Generic.List[string]'
     $cur = New-Object System.Text.StringBuilder
     $have = $false
@@ -6459,6 +6809,9 @@ function Split-CurlCmd([string]$s0) {
         $c = $s[$i]
         if (($c -ceq ' ' -or $c -ceq "`t" -or $c -ceq "`n") -and -not $inq) {
             if ($have) { $toks.Add($cur.ToString()); [void]$cur.Clear(); $have = $false }
+            if ($c -ceq "`n" -and $toks.Count -gt 0 -and $script:CurlNextLineRe.IsMatch($s, $i + 1)) {
+                $cmds.Add($toks); $toks = New-Object 'System.Collections.Generic.List[string]'
+            }
             $i++
         } elseif ($c -ceq '\') {
             $j = $i
@@ -6476,8 +6829,8 @@ function Split-CurlCmd([string]$s0) {
             else { $inq = -not $inq; $i++ }
             $have = $true
         } elseif ('&|'.IndexOf($c) -ge 0 -and -not $inq -and -not $have) {
-            Write-Warn ('curl: 「' + $s.Substring($i, [Math]::Min(2, $n - $i)).Trim() + '」以降は別のコマンドのため読みません')
-            break
+            if ($toks.Count -gt 0) { $cmds.Add($toks); $toks = New-Object 'System.Collections.Generic.List[string]' }
+            $i++
         } else {
             [void]$cur.Append($c)
             $have = $true
@@ -6485,7 +6838,8 @@ function Split-CurlCmd([string]$s0) {
         }
     }
     if ($have) { $toks.Add($cur.ToString()) }
-    return , $toks
+    if ($toks.Count -gt 0) { $cmds.Add($toks) }
+    return , $cmds
 }
 function ConvertFrom-CurlPct([string]$s, [bool]$plus = $true) {
     # %XX（UTF-8）を戻す（$plus のときは + を空白にする）。UTF-8 として読めない場合は $null
@@ -6622,7 +6976,7 @@ function ConvertFrom-Curl($tokens, [string]$apiName) {
             }
             if (-not $go) { break }
         } elseif (@('curl', 'curl.exe') -ccontains $a.ToLowerInvariant()) {
-            Write-Warn 'curl: 2 つ目の curl コマンド以降は読みません（add-curl で追加するのは 1 行です）'
+            Write-Warn 'curl: 引数の途中の curl 以降は読みません（複数のコマンドは改行・;・& で区切ってください）'
             break
         } else {
             $st.urls.Add($a)
@@ -6825,11 +7179,6 @@ function Show-NewRow($row, [string]$where) {
         for ($k = 1; $k -lt $lines.Length; $k++) { Write-Host ('  ' + (' ' * $w) + '   ' + $lines[$k]) }
     }
 }
-function Save-BackupCopy([string]$path, [byte[]]$data) {
-    $bak = $path + '.' + (Get-Stamp) + '.bak'
-    Write-BytesFile $bak $data
-    Write-Info ('元のファイルを退避しました: ' + $bak)
-}
 function Get-XlsxSheetParts($zip) {
     # ブック内のシート → @(シート名, XML のパス) の一覧
     $wb = Load-ZipXml $zip 'xl/workbook.xml'
@@ -6844,7 +7193,8 @@ function Get-XlsxSheetParts($zip) {
             foreach ($a in $el.Attributes) { if ($a.LocalName -ceq 'id' -and $a.NamespaceURI) { $rid = $a.Value } }
             $target = ''
             if ($relmap.ContainsKey($rid)) { $target = $relmap[$rid] }
-            if ($target.StartsWith('/', $script:Ord)) { $part = $target.Substring(1) } else { $part = 'xl/' + $target }
+            $part = ''
+            if ($target) { $part = Get-XlPart $target }
             if ($target -and $null -ne $zip.GetEntry($part)) { $out.Add(@($el.GetAttribute('name'), $part)) }
         }
     }
@@ -6930,7 +7280,7 @@ function Set-XlsxRow([string]$xml, [int]$target, $values) {
         $sa = ''
         if ($null -ne $s) { $sa = ' s="' + $s + '"' }
         $out[$c] = '<' + $pfx + 'c r="' + (CRef $target ($c + 1)) + '"' + $sa + ' t="inlineStr"><' + $pfx + 'is><' + $pfx + 't xml:space="preserve">' +
-            (XEsc ([string]$values[$c])) + '</' + $pfx + 't></' + $pfx + 'is></' + $pfx + 'c>'
+            (XEsc (Xl-Escape ([string]$values[$c]))) + '</' + $pfx + 't></' + $pfx + 'is></' + $pfx + 'c>'
         $wcol = 8
         if ($widths.ContainsKey($c + 1)) { $wcol = $widths[$c + 1] }
         $l = WrapLines ([string]$values[$c]) $wcol
@@ -6963,7 +7313,7 @@ function Set-XlsxRow([string]$xml, [int]$target, $values) {
     }
     return $xml
 }
-function Add-XlsxRow([string]$path, $row, [bool]$dry) {
+function Add-XlsxRow([string]$path, $newRows, [bool]$dry) {
     $data = [System.IO.File]::ReadAllBytes((FullPath $path))
     $ms = New-Object System.IO.MemoryStream(, $data)
     try { $zip = New-Object System.IO.Compression.ZipArchive($ms, [System.IO.Compression.ZipArchiveMode]::Read) }
@@ -6996,25 +7346,36 @@ function Add-XlsxRow([string]$path, $row, [bool]$dry) {
             foreach ($v in $r[1]) { if ($v.Trim()) { $any = $true } }
             if ($r[0] -gt $last -and $any) { $last = $r[0] }
         }
-        $target = $last + 1
-        $row = $row.Clone()
-        if (-not $row['no']) { $row['no'] = Get-TableNextNo $rows $hidx $colmap }
-        $values = @{}
-        foreach ($c in $script:Spec.api_columns) {
-            $v = [string]$row[$c.key]
-            if ($v -and $colmap.ContainsKey($c.key)) { $values[$colmap[$c.key]] = $v }
-            elseif ($v) { Write-Warn ('「' + $name + '」シートに「' + $c.header + '」列が無いため、その値は記入しません') }
-        }
-        foreach ($v in $values.Values) { if (([string]$v).Length -gt 32767) { throw (New-ToolError 'Excel のセルに入る文字数（32767 文字）を超える値があります。CSV の API 一覧に追加してください') } }
-        Show-NewRow $row ($path + ' の「' + $name + '」シート ' + $target + ' 行目')
-        if ($dry) { Write-Info '--dry-run のため書き込みません'; return 0 }
+        $firstNo = [long](Get-TableNextNo $rows $hidx $colmap)
         $entry = $zip.GetEntry($part)
         $sr = $entry.Open()
         $mem = New-Object System.IO.MemoryStream
         $sr.CopyTo($mem)
         $sr.Dispose()
         $utf8 = New-Object System.Text.UTF8Encoding($false)
-        $newXml = $utf8.GetBytes((Set-XlsxRow ($utf8.GetString($mem.ToArray())) $target $values))
+        $xml = $utf8.GetString($mem.ToArray())
+        $targets = New-Object System.Collections.Generic.List[int]
+        $missing = New-Object System.Collections.Generic.List[string]
+        for ($k = 0; $k -lt $newRows.Count; $k++) {
+            $target = $last + 1 + $k
+            $row = $newRows[$k].Clone()
+            if (-not $row['no']) { $row['no'] = ($firstNo + $k).ToString($script:Inv) }
+            $values = @{}
+            foreach ($c in $script:Spec.api_columns) {
+                $v = [string]$row[$c.key]
+                if ($v -and $colmap.ContainsKey($c.key)) { $values[$colmap[$c.key]] = $v }
+                elseif ($v -and -not $missing.Contains([string]$c.header)) {
+                    $missing.Add([string]$c.header)
+                    Write-Warn ('「' + $name + '」シートに「' + $c.header + '」列が無いため、その値は記入しません')
+                }
+            }
+            foreach ($v in $values.Values) { if (([string]$v).Length -gt 32767) { throw (New-ToolError 'Excel のセルに入る文字数（32767 文字）を超える値があります。CSV の API 一覧に追加してください') } }
+            Show-NewRow $row ($path + ' の「' + $name + '」シート ' + $target + ' 行目')
+            $xml = Set-XlsxRow $xml $target $values
+            $targets.Add($target)
+        }
+        if ($dry) { Write-Info '--dry-run のため書き込みません'; return 0 }
+        $newXml = $utf8.GetBytes($xml)
         $outMs = New-Object System.IO.MemoryStream
         $zo = New-Object System.IO.Compression.ZipArchive($outMs, [System.IO.Compression.ZipArchiveMode]::Create, $true)
         foreach ($e in $zip.Entries) {
@@ -7036,30 +7397,42 @@ function Add-XlsxRow([string]$path, $row, [bool]$dry) {
     } finally {
         $zip.Dispose()
     }
-    Save-BackupCopy $path $data
-    Write-BytesFile $path $outMs.ToArray()
-    Write-Info ('1 行追加しました: ' + $path + '（「' + $name + '」シート ' + $target + ' 行目）')
+    [void](Replace-File $path $outMs.ToArray() '元のファイル')
+    $span = [string]$targets[0]
+    if ($targets.Count -gt 1) { $span = [string]$targets[0] + '～' + [string]$targets[$targets.Count - 1] }
+    Write-Info ([string]$targets.Count + ' 行追加しました: ' + $path + '（「' + $name + '」シート ' + $span + ' 行目）')
     return 0
 }
-function Add-CsvRow([string]$path, $row, [bool]$dry) {
+function Add-CsvRow([string]$path, $newRows, [bool]$dry) {
     $data = [System.IO.File]::ReadAllBytes((FullPath $path))
     $tx = Read-TextAuto $path
-    $rows = Rows-FromCsv (Parse-Csv $tx[0])
+    $rows = Rows-FromCsv (Parse-Csv $tx[0] ',' ([System.IO.Path]::GetFileName($path)))
     $lay = Get-TableLayout $rows ([System.IO.Path]::GetFileName($path))
     $hidx = $lay[0]
     $colmap = $lay[1]
-    $row = $row.Clone()
-    if (-not $row['no']) { $row['no'] = Get-TableNextNo $rows $hidx $colmap }
+    $firstNo = [long](Get-TableNextNo $rows $hidx $colmap)
     $width = [int]$lay[2]
     foreach ($v in $colmap.Values) { if ($v + 1 -gt $width) { $width = $v + 1 } }
-    $cells = New-Object string[] $width
-    for ($k = 0; $k -lt $width; $k++) { $cells[$k] = '' }
-    foreach ($c in $script:Spec.api_columns) {
-        $v = [string]$row[$c.key]
-        if ($v -and $colmap.ContainsKey($c.key)) { $cells[$colmap[$c.key]] = $v }
-        elseif ($v) { Write-Warn ('CSV に「' + $c.header + '」列が無いため、その値は記入しません') }
+    $lines = New-Object System.Collections.Generic.List[string]
+    $missing = New-Object System.Collections.Generic.List[string]
+    for ($r = 0; $r -lt $newRows.Count; $r++) {
+        $row = $newRows[$r].Clone()
+        if (-not $row['no']) { $row['no'] = ($firstNo + $r).ToString($script:Inv) }
+        $cells = New-Object string[] $width
+        for ($k = 0; $k -lt $width; $k++) { $cells[$k] = '' }
+        foreach ($c in $script:Spec.api_columns) {
+            $v = [string]$row[$c.key]
+            if ($v -and $colmap.ContainsKey($c.key)) { $cells[$colmap[$c.key]] = $v }
+            elseif ($v -and -not $missing.Contains([string]$c.header)) {
+                $missing.Add([string]$c.header)
+                Write-Warn ('CSV に「' + $c.header + '」列が無いため、その値は記入しません')
+            }
+        }
+        Show-NewRow $row ($path + ' の末尾')
+        $fields = New-Object System.Collections.Generic.List[string]
+        foreach ($v in $cells) { $fields.Add((CsvField $v)) }
+        $lines.Add([string]::Join(',', $fields))
     }
-    Show-NewRow $row ($path + ' の末尾')
     if ($dry) { Write-Info '--dry-run のため書き込みません'; return 0 }
     switch ($tx[1]) {
         'UTF-8(BOM)' { $codec = New-Object System.Text.UTF8Encoding($false); $bom = 3 }
@@ -7071,20 +7444,20 @@ function Add-CsvRow([string]$path, $row, [bool]$dry) {
     $bodyText = $codec.GetString($data, $bom, $data.Length - $bom)
     $nl = "`n"
     if ($bodyText.Contains("`r`n") -or $bodyText -ceq '') { $nl = "`r`n" }
-    $fields = New-Object System.Collections.Generic.List[string]
-    foreach ($v in $cells) { $fields.Add((CsvField $v)) }
-    $line = [string]::Join(',', $fields) + $nl
+    $line = ''
+    foreach ($x in $lines) { $line += $x + $nl }
     if ($bodyText -cne '' -and -not $bodyText.EndsWith("`n", $script:Ord)) { $line = $nl + $line }
     try { $add = $codec.GetBytes($line) }
     catch { throw (New-ToolError ('CSV の文字コード（' + $tx[1] + '）で表せない文字が含まれています。CSV を UTF-8 で保存し直してください: ' + $path)) }
-    Save-BackupCopy $path $data
     $all = New-Object byte[] ($data.Length + $add.Length)
     [System.Array]::Copy($data, 0, $all, 0, $data.Length)
     [System.Array]::Copy($add, 0, $all, $data.Length, $add.Length)
-    Write-BytesFile $path $all
+    [void](Replace-File $path $all '元のファイル')
     $cnt = 0
-    for ($k = $hidx + 1; $k -lt $rows.Count; $k++) { foreach ($v in $rows[$k][1]) { if ($v.Trim()) { $cnt++; break } } }
-    Write-Info ('1 行追加しました: ' + $path + '（' + ($cnt + 1) + ' 件目の API）')
+    for ($k = $hidx + 1; $k -lt $rows.Count; $k++) { foreach ($v in $rows[$k][1]) { if ($v.Trim()) { if (-not $v.Trim().StartsWith('#', $script:Ord)) { $cnt++ }; break } } }
+    $span = [string]($cnt + 1)
+    if ($lines.Count -gt 1) { $span = [string]($cnt + 1) + '～' + [string]($cnt + $lines.Count) }
+    Write-Info ([string]$lines.Count + ' 行追加しました: ' + $path + '（' + $span + ' 件目の API）')
     return 0
 }
 function Invoke-AddCurl {
@@ -7097,11 +7470,26 @@ function Invoke-AddCurl {
     } else {
         $text = $Curl
     }
-    $row = ConvertFrom-Curl (Split-Curl $text) ([string]$ApiName).Trim()
-    Write-Info ('curl コマンドを解析しました: ' + $row['method'] + ' ' + $row['url'])
+    $commands = Split-CurlCommands $text
+    # 複数のコマンドがある場合、curl 以外のコマンド（| の後ろの jq など）は読まない
+    $curls = New-Object 'System.Collections.Generic.List[object]'
+    foreach ($c in $commands) {
+        $parts = ([string]$c[0]).Replace('\', '/').Split([char]'/')
+        if (@('curl', 'curl.exe') -ccontains $parts[$parts.Length - 1].ToLowerInvariant()) { $curls.Add($c) }
+        elseif ($commands.Count -gt 1) { $j = [string]::Join(' ', $c); Write-Warn ('curl 以外のコマンドは読みません: ' + $j.Substring(0, [Math]::Min(80, $j.Length))) }
+    }
+    if ($curls.Count -eq 0) {
+        if ($commands.Count -gt 0) { $curls.Add($commands[0]) } else { $curls.Add((New-Object 'System.Collections.Generic.List[string]')) }
+    }
+    $newRows = New-Object 'System.Collections.Generic.List[object]'
+    foreach ($c in $curls) {
+        $row = ConvertFrom-Curl $c ([string]$ApiName).Trim()
+        Write-Info ('curl コマンドを解析しました: ' + $row['method'] + ' ' + $row['url'])
+        $newRows.Add($row)
+    }
     $ext = [System.IO.Path]::GetExtension($InputFile).ToLowerInvariant()
-    if ($ext -ceq '.xlsx' -or $ext -ceq '.xlsm') { return (Add-XlsxRow $InputFile $row ([bool]$DryRun)) }
-    if ($ext -ceq '.csv' -or $ext -ceq '.txt') { return (Add-CsvRow $InputFile $row ([bool]$DryRun)) }
+    if ($ext -ceq '.xlsx' -or $ext -ceq '.xlsm') { return (Add-XlsxRow $InputFile $newRows ([bool]$DryRun)) }
+    if ($ext -ceq '.csv' -or $ext -ceq '.txt') { return (Add-CsvRow $InputFile $newRows ([bool]$DryRun)) }
     throw (New-ToolError ('add-curl の -InputFile には API 一覧の Excel（.xlsx）または CSV（.csv）を指定してください: ' + $InputFile))
 }
 
@@ -7867,6 +8255,8 @@ function Write-UpdBase([string]$jmxPath, [string]$jmxText) {
     $meta['jmx'] = $jmxText
     Write-TextFile ($jmxPath + [string]$script:Upd.base_suffix) ((ConvertTo-JsonText $meta 0 $true) + "`n")
 }
+# OpenAPI から作る行の形式の版（形式を変えたときに上げる。指紋が変わり、更新（-UpdateJmx）で前回の行を使わずに作り直す）
+$script:OaRowFormat = 2L
 function Get-OaFingerprint($info) {
     # OpenAPI の操作の定義（パス共通のパラメータ・参照先のスキーマを含む）と生成の条件の指紋。同じなら同じテストデータになる
     $refs = New-Object System.Collections.Specialized.OrderedDictionary
@@ -7909,6 +8299,7 @@ function Get-OaFingerprint($info) {
     $data.Add($parts)
     $data.Add($rl)
     $data.Add($cond)
+    $data.Add($script:OaRowFormat)
     $sha = [System.Security.Cryptography.SHA256]::Create()
     try { $hash = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-JsonText $data 0 $false))) } finally { $sha.Dispose() }
     $sb = New-Object System.Text.StringBuilder
@@ -8062,10 +8453,7 @@ function Invoke-Update($upd, $cfg, $apis) {
     }
     $newText = Get-UpdApplied $upd.text $c.edits
     [void](Get-TeRoot $newText '更新後の JMX')
-    $bak = $upd.path + '.' + (Get-Stamp) + '.bak'
-    Write-BytesFile $bak $upd.raw
-    Write-Info ('更新前の JMX を退避しました: ' + $bak)
-    Write-BytesFile $upd.path ((New-Object System.Text.UTF8Encoding($false)).GetBytes($newText))
+    [void](Replace-File $upd.path ((New-Object System.Text.UTF8Encoding($false)).GetBytes($newText)) '更新前の JMX ')
     Write-UpdBase $upd.path $tText
     [void](Write-LinuxCmd $upd.path)
     Write-Info ('JMX を更新しました: ' + $upd.path + '（' + $n + ' 箇所）')
@@ -8158,6 +8546,37 @@ function Show-Summary([string]$path) {
     if ((Has-Prop $stats 'Total') -and [long](Get-Prop $stats.Total 'errorCount' 0) -gt 0) { return 3 }
     return 0
 }
+function Show-JtlSummary([string]$path) {
+    # HTML レポートが無い場合の集計（JTL を CSV として読み、列 success が false の件数を数える）
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    $parser = New-Object Microsoft.VisualBasic.FileIO.TextFieldParser((FullPath $path), (New-Object System.Text.UTF8Encoding($false)))
+    $total = 0
+    $errors = 0
+    try {
+        $parser.TextFieldType = [Microsoft.VisualBasic.FileIO.FieldType]::Delimited
+        $parser.SetDelimiters(',')
+        $parser.HasFieldsEnclosedInQuotes = $true
+        $parser.TrimWhiteSpace = $false
+        $head = $parser.ReadFields()
+        $col = -1
+        if ($null -ne $head) { $col = [Array]::IndexOf($head, 'success') }
+        if ($col -lt 0) { Write-Warn ('JTL に success 列が無いため、エラーの件数を集計できません: ' + $path); return 0 }
+        while (-not $parser.EndOfData) {
+            $f = $parser.ReadFields()
+            if ($null -eq $f -or $f.Length -eq 0) { continue }
+            $total++
+            if ($f.Length -gt $col -and $f[$col] -ceq 'false') { $errors++ }
+        }
+    } catch [Microsoft.VisualBasic.FileIO.MalformedLineException] {
+        Write-Warn ('JTL を CSV として読めない行があるため、エラーの件数を集計できません: ' + $path)
+        return 0
+    } finally {
+        $parser.Close()
+    }
+    Write-Host ('==== 集計結果 ==== 件数: ' + $total + ' / エラー: ' + $errors)
+    if ($errors -gt 0) { return 3 }
+    return 0
+}
 function Invoke-Run {
     if (-not $Jmx) { throw (New-ToolError '実行する JMX を -Jmx（-t）で指定してください（例: -t output\api_test.jmx）') }
     if (-not (Test-Path -LiteralPath $Jmx -PathType Leaf)) { throw (New-ToolError ('JMX ファイルが見つかりません: ' + $Jmx)) }
@@ -8239,11 +8658,7 @@ function Invoke-Run {
         $summaryRc = Show-Summary $stat
         Write-Host ''
     } elseif (Test-Path -LiteralPath $jtl) {
-        $lines = @(Get-Content -LiteralPath $jtl -Encoding UTF8)
-        $errors = 0
-        for ($k = 1; $k -lt $lines.Count; $k++) { $f = $lines[$k].Split(','); if ($f.Length -gt 7 -and $f[7] -ceq 'false') { $errors++ } }
-        Write-Host ('==== 集計結果 ==== 件数: ' + ($lines.Count - 1) + ' / エラー（概算）: ' + $errors)
-        if ($errors -gt 0) { $summaryRc = 3 }
+        $summaryRc = Show-JtlSummary $jtl
     }
     Write-Host ('結果フォルダ : ' + $runDir)
     foreach ($pair in @(@('report\index.html', 'HTML レポート'), @('result.jtl', 'JTL          '), @('jmeter.log', 'JMeter ログ  '), @('api_result.log', '結果ログ     '))) {
@@ -8296,10 +8711,10 @@ jmeter_api_tool.ps1 - REST API の JMeter テスト（JMX）生成・実行ツ�
         -PlaceholderValue N  値の位置に引用符なしで書かれた ${...} に仮に入れる数値（既定: 3000）
 
   jmeter_api_tool.bat add-curl -InputFile API一覧 (-CurlFile ファイル | -Curl "curl ...") [-ApiName API名] [-DryRun]
-      curl コマンドを解析して、API一覧（Excel は「API一覧」シートの空白行、CSV は末尾）に 1 行追加します
-      （元のファイルは「ファイル名.日時.bak」に退避）
+      curl コマンドを解析して、API一覧（Excel は「API一覧」シートの空白行、CSV は末尾）に追加します
+      （1 コマンド = 1 行。改行・;・& で区切った複数のコマンドも可。元のファイルは「ファイル名.日時.bak」に退避）
         -InputFile（-i）     追加先の API一覧（.xlsx / .csv）
-        -CurlFile FILE       curl コマンドを書いたテキストファイル（ブラウザの「Copy as cURL」の内容を保存したもの）
+        -CurlFile FILE       curl コマンドを書いたテキストファイル（ブラウザの「Copy as cURL」「Copy all as cURL」の内容を保存したもの）
         -Curl "..."          curl コマンド（文字列。" を含むコマンドは -CurlFile で指定してください）
         -ApiName NAME        API名（省略時: メソッド + パス）
         -DryRun              追加する行を表示するだけで、ファイルは書き換えない

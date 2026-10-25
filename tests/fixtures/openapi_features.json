@@ -1,0 +1,153 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "features-api", "version": "2.0.0" },
+  "servers": [{ "url": "http://localhost:8080/v1" }],
+  "components": {
+    "securitySchemes": {
+      "KeyHeader": { "type": "apiKey", "in": "header", "name": "X-API-KEY" },
+      "KeyQuery": { "type": "apiKey", "in": "query", "name": "api_key" },
+      "KeyCookie": { "type": "apiKey", "in": "cookie", "name": "sid" },
+      "Bearer": { "type": "http", "scheme": "bearer" }
+    },
+    "schemas": {
+      "Item": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 1, "maximum": 999 },
+          "name": { "type": "string", "minLength": 3, "maxLength": 8 },
+          "tags": { "type": "array", "items": { "type": "string", "enum": ["a", "b", "c"] }, "minItems": 1, "maxItems": 3 },
+          "price": { "type": "number", "minimum": 0.5, "maximum": 99.5 },
+          "status": { "type": "string", "enum": ["NEW", "OLD"] }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/styles/{simple}/{label}/{matrix}": {
+      "get": {
+        "operationId": "pathStyles",
+        "parameters": [
+          { "name": "simple", "in": "path", "required": true, "schema": { "type": "array", "items": { "type": "string" } }, "example": ["x y", "z/w"] },
+          { "name": "label", "in": "path", "required": true, "style": "label", "explode": true, "schema": { "type": "array", "items": { "type": "string" } }, "example": ["a", "b"] },
+          { "name": "matrix", "in": "path", "required": true, "style": "matrix", "explode": false, "schema": { "type": "object" }, "example": { "k": "v", "n": "1 2" } }
+        ],
+        "responses": { "200": { "description": "ok", "content": { "application/json": { "schema": { "type": "object" } } } } }
+      }
+    },
+    "/query": {
+      "get": {
+        "operationId": "queryStyles",
+        "security": [{ "KeyQuery": [] }],
+        "parameters": [
+          { "name": "ids", "in": "query", "schema": { "type": "array", "items": { "type": "integer" } }, "example": [1, 2] },
+          { "name": "csv", "in": "query", "explode": false, "schema": { "type": "array", "items": { "type": "string" } }, "example": ["a b", "c,d"] },
+          { "name": "space", "in": "query", "style": "spaceDelimited", "explode": false, "schema": { "type": "array", "items": { "type": "string" } }, "example": ["x", "y"] },
+          { "name": "pipe", "in": "query", "style": "pipeDelimited", "explode": false, "schema": { "type": "array", "items": { "type": "string" } }, "example": ["p", "q"] },
+          { "name": "filter", "in": "query", "style": "deepObject", "explode": true, "schema": { "type": "object" }, "example": { "name": "n m", "age": 3 } },
+          { "name": "obj", "in": "query", "explode": true, "schema": { "type": "object" }, "example": { "lat": 1.5, "lng": "2" } },
+          { "name": "raw", "in": "query", "allowReserved": true, "schema": { "type": "string" }, "example": "a/b?c" },
+          { "name": "a&b", "in": "query", "schema": { "type": "string" }, "example": "x&y" },
+          { "name": "json", "in": "query", "content": { "application/json": { "schema": { "type": "object" }, "example": { "k": [1, 2] } } } },
+          { "name": "X-Trace", "in": "header", "schema": { "type": "string" }, "example": "trace 1" },
+          { "name": "pref", "in": "cookie", "schema": { "type": "string" }, "example": "dark mode" }
+        ],
+        "responses": { "200": { "description": "ok", "content": { "application/xml": { "schema": { "type": "string" } } } } }
+      }
+    },
+    "/items": {
+      "post": {
+        "operationId": "createItem",
+        "security": [{ "KeyHeader": [], "KeyCookie": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Item" } } } },
+        "responses": { "201": { "description": "created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Item" } } } } }
+      },
+      "delete": {
+        "operationId": "deleteItems",
+        "parameters": [
+          { "name": "ids", "in": "query", "required": true, "explode": false, "schema": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 9 } } }
+        ],
+        "responses": { "204": { "description": "deleted" } }
+      },
+      "options": {
+        "operationId": "itemOptions",
+        "parameters": [ { "name": "q", "in": "query", "schema": { "type": "string" }, "example": "v" } ],
+        "responses": { "200": { "description": "ok" } }
+      }
+    },
+    "/form": {
+      "post": {
+        "operationId": "postForm",
+        "security": [{ "Bearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "type": "object", "properties": { "ids": { "type": "array", "items": { "type": "string" } }, "note": { "type": "string" } } },
+              "example": { "ids": ["a", "b"], "note": "x&y z%" },
+              "encoding": { "ids": { "explode": false } }
+            }
+          }
+        },
+        "responses": { "200": { "description": "ok" } }
+      }
+    },
+    "/upload": {
+      "servers": [{ "url": "https://files.example.com:8443/up" }],
+      "post": {
+        "operationId": "upload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "type": "object", "properties": { "title": { "type": "string" }, "memo": { "type": "string" } } },
+              "example": { "title": " a&b 日本 ", "memo": "50%" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "created" } }
+      }
+    },
+    "/xml": {
+      "put": {
+        "operationId": "putXml",
+        "servers": [{ "url": "http://{host}:9090/x", "variables": { "host": { "default": "xml.example.com" } } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/xml": {
+              "schema": { "type": "object", "xml": { "name": "root" }, "properties": { "a": { "type": "string" } } },
+              "example": { "a": "z" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "ok", "content": { "text/plain": { "schema": { "type": "string" } } } } }
+      }
+    },
+    "/text": {
+      "put": {
+        "operationId": "putText",
+        "requestBody": { "required": false, "content": { "*/*": { "schema": { "type": "string" } }, "text/plain": { "schema": { "type": "string" }, "example": "  hello  " } } },
+        "responses": { "200": { "description": "ok" } }
+      }
+    },
+    "/head/{id}": {
+      "head": {
+        "operationId": "headItem",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 5 },
+          { "name": "verbose", "in": "query", "schema": { "type": "boolean" }, "example": true }
+        ],
+        "responses": { "200": { "description": "ok" } }
+      },
+      "trace": {
+        "operationId": "traceItem",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 6 },
+          { "name": "t", "in": "query", "schema": { "type": "string" }, "example": "1" }
+        ],
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  }
+}
