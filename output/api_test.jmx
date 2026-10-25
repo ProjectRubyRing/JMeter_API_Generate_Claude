@@ -1,0 +1,1250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="APIテスト" enabled="true">
+      <stringProp name="TestPlan.comments">jmeter_api_tool v1.0.0 で生成（2026-10-11 05:00:27 / 入力: api_definition.xlsx）
+名前が [必須] の要素は削除しないでください。[任意] の要素は不要であれば削除できます（各要素のコメント参照）。
+実行時の変更例: -JTHREADS=10 -JLOOPS=100 -JHOST=example.com</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="[必須] 共通変数 (User Defined Variables)" enabled="true">
+        <stringProp name="TestPlan.comments">[必須] 接続先と共通変数。値は ${__P(名前,既定値)} 形式のため、実行時に -J名前=値 で変更できます。
+各 API（HTTP リクエスト）が ${PROTOCOL} ${HOST} ${PORT} を参照しているため削除しないでください。</stringProp>
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="PROTOCOL" elementType="Argument">
+            <stringProp name="Argument.name">PROTOCOL</stringProp>
+            <stringProp name="Argument.value">${__P(PROTOCOL,https)}</stringProp>
+            <stringProp name="Argument.desc">プロトコル（http / https）。-JPROTOCOL=値 で変更</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="HOST" elementType="Argument">
+            <stringProp name="Argument.name">HOST</stringProp>
+            <stringProp name="Argument.value">${__P(HOST,postman-echo.com)}</stringProp>
+            <stringProp name="Argument.desc">ホスト名。-JHOST=値 で変更</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="PORT" elementType="Argument">
+            <stringProp name="Argument.name">PORT</stringProp>
+            <stringProp name="Argument.value">${__P(PORT,)}</stringProp>
+            <stringProp name="Argument.desc">ポート番号（空欄 = http は 80 / https は 443）。-JPORT=値 で変更</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="ENV" elementType="Argument">
+            <stringProp name="Argument.name">ENV</stringProp>
+            <stringProp name="Argument.value">${__P(ENV,staging)}</stringProp>
+            <stringProp name="Argument.desc">共通変数。-JENV=値 で変更</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="CLIENT_ID" elementType="Argument">
+            <stringProp name="Argument.name">CLIENT_ID</stringProp>
+            <stringProp name="Argument.value">${__P(CLIENT_ID,jmeter-client)}</stringProp>
+            <stringProp name="Argument.desc">共通変数。-JCLIENT_ID=値 で変更</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="[任意] HTTPリクエスト初期値 (HTTP Request Defaults)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 全 HTTP リクエストの初期値（文字コード・タイムアウト）。
+タイムアウトは -JCONNECT_TIMEOUT / -JRESPONSE_TIMEOUT（ミリ秒）で変更できます。削除するとタイムアウトは無制限になります。</stringProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.domain"></stringProp>
+        <stringProp name="HTTPSampler.port"></stringProp>
+        <stringProp name="HTTPSampler.protocol"></stringProp>
+        <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+        <stringProp name="HTTPSampler.path"></stringProp>
+        <stringProp name="HTTPSampler.concurrentPool">6</stringProp>
+        <stringProp name="HTTPSampler.connect_timeout">${__P(CONNECT_TIMEOUT,10000)}</stringProp>
+        <stringProp name="HTTPSampler.response_timeout">${__P(RESPONSE_TIMEOUT,30000)}</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="[任意] 共通ヘッダ (HTTP Header Manager)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 全 API に付けるヘッダ。API 固有のヘッダは各 API の配下にあります（同じ名前の場合は API 側が優先）。</stringProp>
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">User-Agent</stringProp>
+            <stringProp name="Header.value">JMeter-API-Test/1.0</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">X-Client-Id</stringProp>
+            <stringProp name="Header.value">${CLIENT_ID}</stringProp>
+          </elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+      <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="[任意] クッキー管理 (HTTP Cookie Manager)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] クッキーの自動管理（Set-Cookie を保存し、以降のリクエストで送信）。反復ごとにクリア = true。
+クッキーを使わない API だけの場合は削除できます。</stringProp>
+        <collectionProp name="CookieManager.cookies">
+          <elementProp name="LANG" elementType="Cookie" testname="LANG">
+            <stringProp name="Cookie.value">ja</stringProp>
+            <stringProp name="Cookie.domain">${HOST}</stringProp>
+            <stringProp name="Cookie.path">/</stringProp>
+            <boolProp name="Cookie.secure">false</boolProp>
+            <longProp name="Cookie.expires">0</longProp>
+            <boolProp name="Cookie.path_specified">true</boolProp>
+            <boolProp name="Cookie.domain_specified">true</boolProp>
+          </elementProp>
+        </collectionProp>
+        <boolProp name="CookieManager.clearEachIteration">true</boolProp>
+        <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
+      </CookieManager>
+      <hashTree/>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="[任意] 事前処理 (setUp Thread Group)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] テスト開始前に 1 回だけ実行されます。配下の処理が不要であれば、このスレッドグループごと削除できます。</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="[任意] テスト開始処理 (JSR223 Sampler)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 実行条件（パラメータ欄）を jmeter.log に出力し、結果ログ用の集計値をリセットします。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters">THREADS=${__P(THREADS,1)} RAMP_UP=${__P(RAMP_UP,1)} LOOPS=${__P(LOOPS,1)} HOST=${HOST} RESULT_DIR=${__P(RESULT_DIR,~/result)}</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] テスト開始処理（setUp Thread Group / JSR223 Sampler）
+//  テスト開始時に1回だけ実行されます。
+//  ・実行条件（パラメータ欄）を jmeter.log に出力します。
+//  ・前回の実行（GUI で連続実行した場合）の集計値・結果ログをリセットします。
+//  削除しても他の要素の動作には影響しません。
+// ============================================================
+SampleResult.setIgnore()   // この処理はレポート・JTL に含めない
+
+def oldWriter = props.remove(&apos;API_RESULT_LOG_WRITER&apos;)
+if (oldWriter != null) {
+    try {
+        oldWriter.close()
+    } catch (Exception ignored) {
+    }
+}
+[&apos;API_RESULT_TOTAL&apos;, &apos;API_RESULT_OK&apos;, &apos;API_RESULT_NG&apos;].each { props.remove(it) }
+props.put(&apos;API_TEST_START_MS&apos;, String.valueOf(System.currentTimeMillis()))
+log.info(&apos;==== テスト開始: &apos; + (Parameters ?: &apos;&apos;))
+</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="[任意] Excelデータ読込 (JSR223 Sampler)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] Excel（.xlsx）を読み込みます（Apache POI 不要）。1 行目 = 変数名、2 行目以降 = データ。
+パラメータ: ファイルパス|シート名（-JEXCEL_FILE / -JEXCEL_SHEET で変更可。相対パスは JMX のフォルダ基準）。
+削除する場合は、メイン処理の「Excelデータ行取得」も削除してください。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters">${__P(EXCEL_FILE,data/testdata.xlsx)}|${__P(EXCEL_SHEET,)}</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] Excelデータ読込（setUp Thread Group / JSR223 Sampler）
+//  テスト開始前に1回だけ実行され、Excel(.xlsx)の内容をメモリに読み込みます。
+//  ・Apache POI などの追加ライブラリは不要です（xlsx を ZIP + XML として直接解析）。
+//  ・1行目 = 列名（そのまま変数名になります）、2行目以降 = データ。空行は無視します。
+//  ・読み込んだデータは props &apos;EXCEL_DATA&apos; に保存され、メイン処理の
+//    「Excelデータ行取得」が反復ごとに1行ずつ変数に設定します。
+//  ・パラメータ欄: ファイルパス|シート名（シート名が空の場合は先頭シート）
+//    相対パスは JMX ファイルのフォルダが基準です。-JEXCEL_FILE / -JEXCEL_SHEET で変更できます。
+//  ・数値・日付はセルに保存されている値（表示書式の適用前）になります。
+//    表示どおりの値を使いたい列は、Excel 側でセルの書式を「文字列」にしてください。
+// ============================================================
+import java.util.concurrent.atomic.AtomicLong
+import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
+import org.apache.jmeter.services.FileServer
+
+SampleResult.setIgnore()   // この処理はレポート・JTL に含めない
+
+String[] params = (Parameters ?: &apos;&apos;).split(&apos;\\|&apos;, -1)
+String path = params.length &gt; 0 ? params[0].trim() : &apos;&apos;
+String sheetName = params.length &gt; 1 ? params[1].trim() : &apos;&apos;
+props.remove(&apos;EXCEL_DATA&apos;)
+props.put(&apos;EXCEL_ROW_COUNTER&apos;, new AtomicLong(0))
+if (path.isEmpty()) {
+    log.warn(&apos;[Excel] ファイルパスが指定されていません&apos;)
+    return
+}
+File file = new File(path)
+if (!file.isAbsolute()) {
+    file = new File(FileServer.getFileServer().getBaseDir(), path)
+}
+if (!file.isFile()) {
+    log.warn(&apos;[Excel] ファイルが見つかりません: &apos; + file.getAbsolutePath())
+    return
+}
+
+def factory = DocumentBuilderFactory.newInstance()
+factory.setNamespaceAware(true)
+factory.setFeature(&apos;http://apache.org/xml/features/disallow-doctype-decl&apos;, true)
+def builder = factory.newDocumentBuilder()
+
+// 子要素をローカル名で取得する
+def children = { node, String name -&gt;
+    def list = []
+    if (node == null) {
+        return list
+    }
+    def nodes = node.getChildNodes()
+    for (int i = 0; i &lt; nodes.getLength(); i++) {
+        def n = nodes.item(i)
+        if (n.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE &amp;&amp; n.getLocalName() == name) {
+            list.add(n)
+        }
+    }
+    return list
+}
+// &lt;t&gt; のテキストを連結する（ふりがな rPh は除外）
+def textOf
+textOf = { node -&gt;
+    StringBuilder sb = new StringBuilder()
+    def nodes = node.getChildNodes()
+    for (int i = 0; i &lt; nodes.getLength(); i++) {
+        def n = nodes.item(i)
+        if (n.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE || n.getLocalName() == &apos;rPh&apos;) {
+            continue
+        }
+        sb.append(n.getLocalName() == &apos;t&apos; ? n.getTextContent() : textOf(n))
+    }
+    return sb.toString()
+}
+// セル参照 &quot;AB12&quot; → 列番号（0 始まり）
+def columnIndex = { String ref -&gt;
+    int n = 0
+    for (char ch : ref.toCharArray()) {
+        if (!Character.isLetter(ch)) {
+            break
+        }
+        n = n * 26 + (Character.toUpperCase(ch) - (&apos;A&apos; as char) + 1)
+    }
+    return n - 1
+}
+
+def zip = new ZipFile(file)
+try {
+    def parse = { String entryName -&gt;
+        def entry = zip.getEntry(entryName)
+        if (entry == null) {
+            return null
+        }
+        def input = zip.getInputStream(entry)
+        try {
+            return builder.parse(input).getDocumentElement()
+        } finally {
+            input.close()
+        }
+    }
+    // 共有文字列
+    List&lt;String&gt; shared = []
+    children(parse(&apos;xl/sharedStrings.xml&apos;), &apos;si&apos;).each { shared.add(textOf(it)) }
+    // シートの特定（workbook.xml → workbook.xml.rels）
+    Map&lt;String, String&gt; rels = [:]
+    children(parse(&apos;xl/_rels/workbook.xml.rels&apos;), &apos;Relationship&apos;).each {
+        rels.put(it.getAttribute(&apos;Id&apos;), it.getAttribute(&apos;Target&apos;))
+    }
+    String target = null
+    String foundName = null
+    def sheetsNode = children(parse(&apos;xl/workbook.xml&apos;), &apos;sheets&apos;)
+    for (def sheet : children(sheetsNode ? sheetsNode[0] : null, &apos;sheet&apos;)) {
+        if (sheetName.isEmpty() || sheet.getAttribute(&apos;name&apos;) == sheetName) {
+            def attrs = sheet.getAttributes()
+            for (int i = 0; i &lt; attrs.getLength(); i++) {
+                def a = attrs.item(i)
+                if (a.getLocalName() == &apos;id&apos; &amp;&amp; a.getNamespaceURI() != null) {
+                    target = rels.get(a.getNodeValue())
+                }
+            }
+            foundName = sheet.getAttribute(&apos;name&apos;)
+            break
+        }
+    }
+    if (target == null) {
+        log.warn(&apos;[Excel] シートが見つかりません: &apos; + (sheetName ?: &apos;(先頭シート)&apos;) + &apos; / &apos; + file.getName())
+        return
+    }
+    def sheetRoot = parse(target.startsWith(&apos;/&apos;) ? target.substring(1) : &apos;xl/&apos; + target)
+    def sheetData = children(sheetRoot, &apos;sheetData&apos;)
+    // セルの読み取り
+    List&lt;List&lt;String&gt;&gt; table = []
+    for (def row : children(sheetData ? sheetData[0] : null, &apos;row&apos;)) {
+        Map&lt;Integer, String&gt; cells = [:]
+        int next = 0
+        for (def c : children(row, &apos;c&apos;)) {
+            String ref = c.getAttribute(&apos;r&apos;)
+            int col = ref ? columnIndex(ref) : next
+            next = col + 1
+            String type = c.getAttribute(&apos;t&apos;)
+            String value = &apos;&apos;
+            if (type == &apos;inlineStr&apos;) {
+                def inline = children(c, &apos;is&apos;)
+                value = inline ? textOf(inline[0]) : &apos;&apos;
+            } else {
+                def v = children(c, &apos;v&apos;)
+                String raw = v ? v[0].getTextContent() : &apos;&apos;
+                if (type == &apos;s&apos;) {
+                    value = raw ? shared[Integer.parseInt(raw.trim())] : &apos;&apos;
+                } else if (type == &apos;b&apos;) {
+                    value = raw.trim() == &apos;1&apos; ? &apos;TRUE&apos; : &apos;FALSE&apos;
+                } else {
+                    value = raw
+                }
+            }
+            cells.put(col, value)
+        }
+        int size = cells.isEmpty() ? 0 : cells.keySet().max() + 1
+        List&lt;String&gt; values = []
+        for (int i = 0; i &lt; size; i++) {
+            values.add(cells.containsKey(i) ? cells.get(i) : &apos;&apos;)
+        }
+        if (values.any { it.trim() }) {
+            table.add(values)
+        }
+    }
+    if (table.isEmpty()) {
+        log.warn(&apos;[Excel] データがありません: &apos; + file.getName() + &apos; / &apos; + foundName)
+        return
+    }
+    List&lt;String&gt; headers = table[0].collect { it.trim() }
+    List&lt;Map&lt;String, String&gt;&gt; rows = []
+    for (int r = 1; r &lt; table.size(); r++) {
+        Map&lt;String, String&gt; m = new LinkedHashMap&lt;&gt;()
+        for (int i = 0; i &lt; headers.size(); i++) {
+            if (headers[i]) {
+                m.put(headers[i], i &lt; table[r].size() ? table[r][i] : &apos;&apos;)
+            }
+        }
+        rows.add(m)
+    }
+    props.put(&apos;EXCEL_DATA&apos;, Collections.unmodifiableList(rows))
+    log.info(&apos;[Excel] 読込完了: &apos; + file.getAbsolutePath() + &apos; / シート=&apos; + foundName
+            + &apos; / 列=&apos; + headers.findAll { it } + &apos; / データ=&apos; + rows.size() + &apos;行&apos;)
+} catch (Exception e) {
+    log.error(&apos;[Excel] 読込エラー: &apos; + file.getAbsolutePath(), e)
+} finally {
+    zip.close()
+}
+</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="[必須] メイン処理 (Thread Group)" enabled="true">
+        <stringProp name="TestPlan.comments">[必須] API を実行するスレッドグループ。
+スレッド数 = -JTHREADS / ランプアップ秒 = -JRAMP_UP / ループ回数 = -JLOOPS（-1 = 無限）</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">${__P(LOOPS,1)}</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(THREADS,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(RAMP_UP,1)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="[任意] 連番 SEQ (Counter)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 反復（ループ）ごとに連番を ${SEQ} に設定します（全スレッドで一意）。</stringProp>
+          <stringProp name="CounterConfig.start">1</stringProp>
+          <stringProp name="CounterConfig.end"></stringProp>
+          <stringProp name="CounterConfig.incr">1</stringProp>
+          <stringProp name="CounterConfig.name">SEQ</stringProp>
+          <stringProp name="CounterConfig.format">000000</stringProp>
+          <boolProp name="CounterConfig.per_user">false</boolProp>
+        </CounterConfig>
+        <hashTree/>
+        <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="[任意] 乱数 RANDOM_NO (Random Variable)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 反復ごとに 1 ～ 99999 の乱数を ${RANDOM_NO} に設定します。</stringProp>
+          <stringProp name="maximumValue">99999</stringProp>
+          <stringProp name="minimumValue">1</stringProp>
+          <stringProp name="outputFormat"></stringProp>
+          <boolProp name="perThread">false</boolProp>
+          <stringProp name="randomSeed"></stringProp>
+          <stringProp name="variableName">RANDOM_NO</stringProp>
+        </RandomVariableConfig>
+        <hashTree/>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="[任意] CSVデータ読込 (CSV Data Set Config)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] CSV ファイルを 1 反復につき 1 行読み込み、列を変数に設定します（変数: USER_ID,PASSWORD,KEYWORD）。
+ファイルは -JCSV_FILE で変更できます（相対パスは JMX のフォルダ基準）。ファイルが無いとスレッドが停止するため、使わない場合は削除してください。</stringProp>
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">${__P(CSV_FILE,data/testdata.csv)}</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">USER_ID,PASSWORD,KEYWORD</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="[任意] Excelデータ行取得 (JSR223 PreProcessor)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 「Excelデータ読込」で読み込んだデータから、反復ごとに次の 1 行を取り出して変数に設定します。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] Excelデータ行取得（JSR223 PreProcessor）
+//  「Excelデータ読込」（setUp）で読み込んだデータから、反復（ループ）ごとに
+//  次の1行を取り出し、1行目の列名を変数名として設定します。
+//    例: 列名 ITEM_CODE → 変数 ITEM_CODE、使用中の行番号 → 変数 EXCEL_ROW_NO
+//  ・全スレッドで共有し、上から順に払い出します。最終行の次は先頭に戻ります。
+//  ・同じ反復内の2つ目以降の API では同じ行の値を使います。
+// ============================================================
+def rows = props.get(&apos;EXCEL_DATA&apos;)
+if (rows == null || rows.isEmpty()) {
+    return
+}
+String iteration = String.valueOf(vars.getIteration())
+if (iteration == vars.get(&apos;EXCEL_ROW_ITERATION&apos;)) {
+    return
+}
+vars.put(&apos;EXCEL_ROW_ITERATION&apos;, iteration)
+def counter = props.get(&apos;EXCEL_ROW_COUNTER&apos;)
+long n = counter != null ? counter.getAndIncrement() : 0L
+int index = (int) (n % rows.size())
+rows.get(index).each { k, v -&gt; vars.put(k, v) }
+vars.put(&apos;EXCEL_ROW_NO&apos;, String.valueOf(index + 1))
+</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="[任意] 共通前処理 (JSR223 PreProcessor)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 全 API の呼び出し直前に毎回実行（Groovy）。${REQUEST_ID} ${TIMESTAMP} ${EPOCH_MS} を設定します。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] 共通前処理（JSR223 PreProcessor）
+//  メイン処理内のすべての API の呼び出し直前に毎回実行されます。
+//  API 呼び出し前にパラメータを生成・加工する処理をここに書きます。
+//  ※ JSR223 内では JMeter の変数参照（ドル記号＋波括弧）は使わず、
+//     vars.get(&apos;変数名&apos;) / vars.put(&apos;変数名&apos;, 値) を使います。
+// ============================================================
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+// リクエストごとの一意な ID とタイムスタンプ → 変数 REQUEST_ID / TIMESTAMP / EPOCH_MS
+vars.put(&apos;REQUEST_ID&apos;, UUID.randomUUID().toString())
+vars.put(&apos;TIMESTAMP&apos;, ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+vars.put(&apos;EPOCH_MS&apos;, String.valueOf(System.currentTimeMillis()))
+
+// 加工の例（必要に応じてコメントを外して使用）
+// String userId = vars.get(&apos;USER_ID&apos;) ?: &apos;&apos;
+// vars.put(&apos;USER_ID_UPPER&apos;, userId.toUpperCase())
+// vars.put(&apos;TODAY&apos;, new Date().format(&apos;yyyyMMdd&apos;))
+</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="[任意] 共通後処理 (JSR223 PostProcessor)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 全 API の呼び出し直後に毎回実行（Groovy）。${LAST_STATUS} ${LAST_ELAPSED_MS} を設定します。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] 共通後処理（JSR223 PostProcessor）
+//  メイン処理内のすべての API の呼び出し直後に毎回実行されます。
+//  応答からパラメータを取得し、次の API で使う変数に設定する処理をここに書きます。
+//  prev = 直前の API の実行結果（SampleResult）
+//  ※ 検証（Assertion）より前に実行されるため、prev.isSuccessful() は HTTP レベルの成否です。
+// ============================================================
+vars.put(&apos;LAST_STATUS&apos;, prev.getResponseCode())
+vars.put(&apos;LAST_ELAPSED_MS&apos;, String.valueOf(prev.getTime()))
+
+// 応答 JSON から値を取り出す例（必要に応じてコメントを外して使用）
+// if ((prev.getContentType() ?: &apos;&apos;).contains(&apos;json&apos;)) {
+//     def json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())
+//     vars.put(&apos;RESULT_CODE&apos;, String.valueOf(json?.resultCode))
+// }
+// 応答ヘッダから値を取り出す例
+// def m = prev.getResponseHeaders() =~ /(?im)^X-Request-Id:\s*(.+)$/
+// if (m.find()) {
+//     vars.put(&apos;RESPONSE_REQUEST_ID&apos;, m.group(1).trim())
+// }
+</stringProp>
+        </JSR223PostProcessor>
+        <hashTree/>
+        <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="[任意] スループット制御 (Constant Throughput Timer)" enabled="false">
+          <stringProp name="TestPlan.comments">[任意] スループット制御。メイン処理全体で 1 分あたり -JTHROUGHPUT 件（既定 600）になるよう待機を調整します。
+無効の場合は、使うときに右クリック → Enable で有効にしてください。</stringProp>
+          <intProp name="calcMode">4</intProp>
+          <stringProp name="throughput">${__P(THROUGHPUT,600)}</stringProp>
+        </ConstantThroughputTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="API01_ログイン(POST JSON)" enabled="true">
+          <stringProp name="TestPlan.comments">API01: POST https://postman-echo.com/post
+JSON を POST する例（postman-echo.com は送信内容をそのまま返す）</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{
+  &quot;userId&quot;: &quot;${USER_ID}&quot;,
+  &quot;password&quot;: &quot;${PASSWORD}&quot;,
+  &quot;requestNo&quot;: &quot;${SEQ}&quot;,
+  &quot;timestamp&quot;: &quot;${TIMESTAMP}&quot;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/post</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="[任意] API01 ヘッダ (HTTP Header Manager)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API だけに付けるヘッダ。</stringProp>
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Correlation-ID</stringProp>
+                <stringProp name="Header.value">${REQUEST_ID}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Signature</stringProp>
+                <stringProp name="Header.value">${SIGNATURE}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="[任意] API01 待機 500ms (Constant Timer)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し前に 500 ミリ秒待機します。</stringProp>
+            <stringProp name="ConstantTimer.delay">500</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="[任意] API01 前処理 (JSR223 PreProcessor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し直前に実行（Groovy）。</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// 署名の生成例: USER_ID + TIMESTAMP の SHA-256（16進）を変数 SIGNATURE に設定
+String src = (vars.get(&apos;USER_ID&apos;) ?: &apos;&apos;) + (vars.get(&apos;TIMESTAMP&apos;) ?: &apos;&apos;)
+def digest = java.security.MessageDigest.getInstance(&apos;SHA-256&apos;).digest(src.getBytes(&apos;UTF-8&apos;))
+vars.put(&apos;SIGNATURE&apos;, digest.encodeHex().toString())</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="[任意] API01 正規表現抽出 ECHO_URL (Regular Expression Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文から正規表現で抽出し ${ECHO_URL} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">ECHO_URL</stringProp>
+            <stringProp name="RegexExtractor.regex">&quot;url&quot;\s*:\s*&quot;([^&quot;]+)&quot;</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+            <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="[任意] API01 JSON抽出 AUTH_TOKEN (JSON Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答 JSON から $.json.userId を抽出し ${AUTH_TOKEN} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="JSONPostProcessor.referenceNames">AUTH_TOKEN</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.json.userId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="[任意] API01 JSON抽出 LOGIN_SEQ (JSON Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答 JSON から $.json.requestNo を抽出し ${LOGIN_SEQ} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="JSONPostProcessor.referenceNames">LOGIN_SEQ</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.json.requestNo</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="[任意] API01 後処理 (JSR223 PostProcessor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し直後に実行（Groovy）。正規表現・JSON 抽出の後に実行されます。</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// 応答 JSON の解析例: 値を取り出して次の API で使う変数に設定
+try {
+    def json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())
+    vars.put(&apos;LOGIN_USER&apos;, String.valueOf(json?.json?.userId))
+} catch (Exception e) {
+    log.warn(&apos;ログイン応答の解析に失敗しました: &apos; + e.getMessage())
+}</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API01 ステータス検証 200 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] HTTP ステータスが 200 であることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API01 応答本文検証 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文に指定した文字列がすべて含まれることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1240691163">${USER_ID}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="[任意] API01 応答時間検証 5000ms (Duration Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答時間が 5000 ミリ秒以内であることを検証します。</stringProp>
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="API02_商品検索(GET)" enabled="true">
+          <stringProp name="TestPlan.comments">API02: GET https://postman-echo.com/get
+GET とクエリパラメータの例（CSV・Excel・乱数の変数を使用）</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="keyword" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${KEYWORD}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">keyword</stringProp>
+              </elementProp>
+              <elementProp name="itemCode" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${ITEM_CODE}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">itemCode</stringProp>
+              </elementProp>
+              <elementProp name="rand" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${RANDOM_NO}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">rand</stringProp>
+              </elementProp>
+              <elementProp name="page" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">1</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">page</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/get</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="[任意] API02 ヘッダ (HTTP Header Manager)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API だけに付けるヘッダ。</stringProp>
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${AUTH_TOKEN}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="[任意] API02 待機 1000ms (Constant Timer)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し前に 1000 ミリ秒待機します。</stringProp>
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="[任意] API02 JSON抽出 SEARCH_KEYWORD (JSON Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答 JSON から $.args.keyword を抽出し ${SEARCH_KEYWORD} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="JSONPostProcessor.referenceNames">SEARCH_KEYWORD</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.args.keyword</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API02 ステータス検証 200 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] HTTP ステータスが 200 であることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API02 応答本文検証 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文に指定した文字列がすべて含まれることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2099591195">${ITEM_CODE}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="[任意] API02 応答時間検証 5000ms (Duration Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答時間が 5000 ミリ秒以内であることを検証します。</stringProp>
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="API03_注文登録(POST form)" enabled="true">
+          <stringProp name="TestPlan.comments">API03: POST https://postman-echo.com/post?source=jmeter
+form 形式の POST の例（POST のクエリパラメータは URL に付与）</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="itemCode" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${ITEM_CODE}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">itemCode</stringProp>
+              </elementProp>
+              <elementProp name="itemName" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${ITEM_NAME}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">itemName</stringProp>
+              </elementProp>
+              <elementProp name="quantity" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">${QUANTITY}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">quantity</stringProp>
+              </elementProp>
+              <elementProp name="orderNo" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">ORD${SEQ}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">orderNo</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/post?source=jmeter&amp;channel=web</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="[任意] API03 ヘッダ (HTTP Header Manager)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API だけに付けるヘッダ。</stringProp>
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${AUTH_TOKEN}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="[任意] API03 待機 1000ms (Constant Timer)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し前に 1000 ミリ秒待機します。</stringProp>
+            <stringProp name="ConstantTimer.delay">1000</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="[任意] API03 正規表現抽出 ORDER_NO (Regular Expression Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文から正規表現で抽出し ${ORDER_NO} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">ORDER_NO</stringProp>
+            <stringProp name="RegexExtractor.regex">&quot;orderNo&quot;\s*:\s*&quot;([^&quot;]+)&quot;</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+            <boolProp name="RegexExtractor.default_empty_value">false</boolProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="[任意] API03 後処理 (JSR223 PostProcessor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し直後に実行（Groovy）。正規表現・JSON 抽出の後に実行されます。</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// 抽出した値の利用例（jmeter.log に出力）
+log.info(&apos;注文番号=&apos; + vars.get(&apos;ORDER_NO&apos;) + &apos; / ステータス=&apos; + prev.getResponseCode())</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API03 ステータス検証 200,201 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] HTTP ステータスが 200 / 201 であることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+              <stringProp name="49587">201</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API03 応答本文検証 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文に指定した文字列がすべて含まれることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1489037174">ORD${SEQ}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="[任意] API03 応答時間検証 5000ms (Duration Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答時間が 5000 ミリ秒以内であることを検証します。</stringProp>
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="API04_クッキー確認(GET)" enabled="true">
+          <stringProp name="TestPlan.comments">API04: GET https://postman-echo.com/cookies/set
+Set-Cookie とリダイレクト追従の例（クッキー管理を使用）</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="session_id" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.value">S${SEQ}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">session_id</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/cookies/set</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="[任意] API04 待機 500ms (Constant Timer)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] この API の呼び出し前に 500 ミリ秒待機します。</stringProp>
+            <stringProp name="ConstantTimer.delay">500</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="[任意] API04 JSON抽出 SESSION_COOKIE (JSON Extractor)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答 JSON から $.cookies.session_id を抽出し ${SESSION_COOKIE} に設定します（見つからない場合は NOT_FOUND）。</stringProp>
+            <stringProp name="JSONPostProcessor.referenceNames">SESSION_COOKIE</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.cookies.session_id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API04 ステータス検証 200 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] HTTP ステータスが 200 であることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="[任意] API04 応答本文検証 (Response Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答本文に指定した文字列がすべて含まれることを検証します。</stringProp>
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1661853540">session_id</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="[任意] API04 応答時間検証 5000ms (Duration Assertion)" enabled="true">
+            <stringProp name="TestPlan.comments">[任意] 応答時間が 5000 ミリ秒以内であることを検証します。</stringProp>
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="[任意] 変数確認 (Debug Sampler)" enabled="false">
+          <stringProp name="TestPlan.comments">[任意] デバッグ用。全変数を結果ツリーに表示します。無効の場合は、使うときに右クリック → Enable で有効にしてください。</stringProp>
+          <boolProp name="displayJMeterProperties">false</boolProp>
+          <boolProp name="displayJMeterVariables">true</boolProp>
+          <boolProp name="displaySystemProperties">false</boolProp>
+        </DebugSampler>
+        <hashTree/>
+      </hashTree>
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="[任意] 事後処理 (tearDown Thread Group)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 全スレッドの終了後に 1 回だけ実行されます。</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </PostThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="[任意] テスト終了処理 (JSR223 Sampler)" enabled="true">
+          <stringProp name="TestPlan.comments">[任意] 合計・成功・失敗件数を jmeter.log と結果ログに出力し、結果ログを閉じます。</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// ============================================================
+// [任意] テスト終了処理（tearDown Thread Group / JSR223 Sampler）
+//  すべてのスレッドの終了後に1回だけ実行されます。
+//  ・合計 / 成功 / 失敗件数と経過時間を jmeter.log と結果ログに出力します。
+//    （件数は「結果ログ出力」が有効な場合のみ集計されます）
+//  ・結果ログファイルを閉じ、読み込んだ Excel データを解放します。
+// ============================================================
+SampleResult.setIgnore()   // この処理はレポート・JTL に含めない
+
+def total = props.get(&apos;API_RESULT_TOTAL&apos;)
+String counts = total == null ? &apos;件数=集計なし（結果ログ出力が無効）&apos;
+        : &apos;合計=&apos; + total.get() + &apos; 成功=&apos; + (props.get(&apos;API_RESULT_OK&apos;)?.get() ?: 0) + &apos; 失敗=&apos; + (props.get(&apos;API_RESULT_NG&apos;)?.get() ?: 0)
+String start = props.get(&apos;API_TEST_START_MS&apos;)
+String elapsed = start ? &apos; 経過秒=&apos; + (System.currentTimeMillis() - Long.parseLong(start)).intdiv(1000) : &apos;&apos;
+String summary = &apos;==== テスト終了: &apos; + counts + elapsed
+log.info(summary)
+
+def writer = props.remove(&apos;API_RESULT_LOG_WRITER&apos;)
+if (writer != null) {
+    synchronized (writer) {
+        writer.println(&apos;# &apos; + summary)
+        writer.close()
+    }
+}
+props.remove(&apos;EXCEL_DATA&apos;)
+props.remove(&apos;EXCEL_ROW_COUNTER&apos;)
+</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="[任意] 結果ツリー (View Results Tree)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] GUI でリクエスト / レスポンスを確認するためのリスナー。CLI 実行時は不要です（削除・無効化可）。</stringProp>
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="[任意] 集計レポート (Summary Report)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] GUI で集計結果を確認するためのリスナー。</stringProp>
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="[任意] 統計レポート (Aggregate Report)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] GUI で統計（パーセンタイル）を確認するためのリスナー。</stringProp>
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="[任意] JTL出力 全件 (Simple Data Writer)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 全リクエストの結果を JTL（CSV）に出力します。出力先: -JRESULT_DIR（既定 ~/result、~/ は JMX のフォルダ）。
+run コマンドや -l 指定時は同じ内容が result.jtl にも出力されるため、大量実行時は削除・無効化してかまいません。</stringProp>
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename">${__P(RESULT_DIR,~/result)}/result_all.jtl</stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="[任意] エラー詳細出力 XML (Simple Data Writer)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 失敗したリクエストだけを、リクエスト・レスポンス全文付きで XML に出力します（結果ツリーで読み込み可能）。</stringProp>
+        <boolProp name="ResultCollector.error_logging">true</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>true</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>true</responseData>
+            <samplerData>true</samplerData>
+            <xml>true</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>true</responseHeaders>
+            <requestHeaders>true</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename">${__P(RESULT_DIR,~/result)}/error_detail.xml</stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <JSR223Listener guiclass="TestBeanGUI" testclass="JSR223Listener" testname="[任意] 結果ログ出力 (JSR223 Listener)" enabled="true">
+        <stringProp name="TestPlan.comments">[任意] 1 リクエスト 1 行の結果ログ（api_result.log）を出力します。パラメータ: 出力フォルダ|本文出力(none/error/all)|最大文字数。
+大量実行時はファイル書き込みが負荷になるため、削除・無効化を推奨します。</stringProp>
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters">${__P(RESULT_DIR,~/result)}|${__P(LOG_RESPONSE,error)}|${__P(LOG_MAX_CHARS,1000)}</stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">true</stringProp>
+        <stringProp name="script">// ============================================================
+// [任意] 結果ログ出力（JSR223 Listener）
+//  すべての API の実行結果を 1リクエスト1行（タブ区切り）で api_result.log に出力します。
+//  パラメータ欄: 出力フォルダ|本文出力|最大文字数
+//   ・出力フォルダ: -JRESULT_DIR で変更（~/ は JMX のフォルダ。run コマンドは自動設定）
+//   ・本文出力  : none = 出力しない / error = 失敗時のみ / all = 全件（-JLOG_RESPONSE）
+//   ・最大文字数: リクエスト・レスポンス本文の最大文字数（-JLOG_MAX_CHARS）
+//  ※ 大量実行時はファイル書き込みが負荷になるため、無効化または none を推奨します。
+// ============================================================
+import java.text.SimpleDateFormat
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.Function
+import org.apache.jmeter.services.FileServer
+
+def res = sampleResult
+if (res == null) {
+    return
+}
+String[] p = (Parameters ?: &apos;&apos;).split(&apos;\\|&apos;, -1)
+String dirText = (p.length &gt; 0 &amp;&amp; p[0].trim()) ? p[0].trim() : &apos;~/result&apos;
+String mode = (p.length &gt; 1 &amp;&amp; p[1].trim()) ? p[1].trim().toLowerCase() : &apos;error&apos;
+int maxChars = (p.length &gt; 2 &amp;&amp; p[2].trim().isInteger()) ? p[2].trim().toInteger() : 1000
+
+// 件数の集計（テスト終了処理で出力）
+def count = { String key -&gt; props.computeIfAbsent(key, { k -&gt; new AtomicLong(0) } as Function).incrementAndGet() }
+count(&apos;API_RESULT_TOTAL&apos;)
+count(res.isSuccessful() ? &apos;API_RESULT_OK&apos; : &apos;API_RESULT_NG&apos;)
+
+// 出力ファイル（最初の1件で作成し、全スレッドで共有）
+def writer = props.computeIfAbsent(&apos;API_RESULT_LOG_WRITER&apos;, { k -&gt;
+    File dir = dirText.startsWith(&apos;~/&apos;) ? new File(FileServer.getFileServer().getBaseDir(), dirText.substring(2)) : new File(dirText)
+    dir.mkdirs()
+    File file = new File(dir, &apos;api_result.log&apos;)
+    boolean isNew = !file.exists() || file.length() == 0
+    def w = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file, true), &apos;UTF-8&apos;), true)
+    if (isNew) {
+        w.println([&apos;日時&apos;, &apos;結果&apos;, &apos;ステータス&apos;, &apos;応答時間ms&apos;, &apos;受信バイト&apos;, &apos;ラベル&apos;, &apos;リクエスト&apos;, &apos;スレッド&apos;, &apos;メッセージ&apos;].join(&apos;\t&apos;))
+    }
+    log.info(&apos;[結果ログ] 出力先: &apos; + file.getAbsolutePath())
+    return w
+} as Function)
+
+// 改行・タブを除去し、最大文字数で切り詰める
+def oneLine = { String s, int limit -&gt;
+    if (s == null) {
+        return &apos;&apos;
+    }
+    String t = s.replace(&apos;\r&apos;, &apos;&apos;).replace(&apos;\n&apos;, &apos;\\n&apos;).replace(&apos;\t&apos;, &apos; &apos;)
+    return (limit &gt; 0 &amp;&amp; t.length() &gt; limit) ? t.substring(0, limit) + &apos;...(全&apos; + t.length() + &apos;文字)&apos; : t
+}
+String request = &apos;&apos;
+if (res instanceof org.apache.jmeter.protocol.http.sampler.HTTPSampleResult) {
+    request = (res.getHTTPMethod() ?: &apos;&apos;) + &apos; &apos; + (res.getUrlAsString() ?: &apos;&apos;)
+}
+String message = res.getResponseMessage() ?: &apos;&apos;
+def failures = res.getAssertionResults().findAll { it.isFailure() || it.isError() }
+if (failures) {
+    message += &apos; / &apos; + failures.collect { it.getName() + &apos;: &apos; + it.getFailureMessage() }.join(&apos; / &apos;)
+}
+String time = new SimpleDateFormat(&apos;yyyy-MM-dd HH:mm:ss.SSS&apos;).format(new Date(res.getStartTime()))
+String line = [time, res.isSuccessful() ? &apos;OK&apos; : &apos;NG&apos;, res.getResponseCode(), res.getTime(), res.getBytesAsLong(),
+               res.getSampleLabel(), request.trim(), res.getThreadName(), oneLine(message, 1000)].join(&apos;\t&apos;)
+synchronized (writer) {
+    writer.println(line)
+    if (mode == &apos;all&apos; || (mode == &apos;error&apos; &amp;&amp; !res.isSuccessful())) {
+        writer.println(&apos;\t[REQUEST] &apos; + oneLine(res.getSamplerData(), maxChars))
+        writer.println(&apos;\t[RESPONSE] &apos; + oneLine(res.getResponseDataAsString(), maxChars))
+    }
+}
+if (!res.isSuccessful()) {
+    log.warn(&apos;[API NG] &apos; + res.getSampleLabel() + &apos; status=&apos; + res.getResponseCode() + &apos; &apos; + oneLine(message, 500))
+}
+</stringProp>
+      </JSR223Listener>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

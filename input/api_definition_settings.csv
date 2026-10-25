@@ -1,0 +1,72 @@
+﻿設定キー,設定項目,設定値,既定値,説明
+#■ 基本,,,,
+test_plan_name,テストプラン名,APIテスト,APIテスト,JMeter 上に表示されるテストプラン名
+output_file,出力JMXファイル名,api_test.jmx,api_test.jmx,生成する JMX のファイル名（英数字・_・-・. 以外の文字は _ に置き換えます）
+base_url,ベースURL,,（空欄）,API一覧の URL が「/」で始まる場合に先頭に付ける URL（例: https://api.example.com/v1）
+content_encoding,文字コード,UTF-8,UTF-8,リクエストの文字コード
+#■ 負荷,,,,
+threads,スレッド数,1,1,同時に実行する仮想ユーザー数。-JTHREADS
+ramp_up,ランプアップ(秒),1,1,全スレッドが起動し終わるまでの秒数。-JRAMP_UP
+loops,ループ回数,1,1,各スレッドが API 一覧を繰り返す回数。-1 = 無限（実行時間と併用）。-JLOOPS
+duration,実行時間(秒),,（空欄）,指定するとスケジューラを有効にし、この秒数で終了（ループ回数は -1 を推奨）。-JDURATION
+on_sample_error,エラー時の動作,continue,continue,continue = 続行 / startnextloop = 次のループへ / stopthread = スレッド停止 / stoptest = テスト停止 / stoptestnow = 即時停止
+throughput_timer,スループット制御,DISABLE,DISABLE,1 分あたりのリクエスト数を一定に保つ Constant Throughput Timer
+throughput_per_min,目標スループット(件/分),600,600,スループット制御の目標値（メイン処理全体の合計）。-JTHROUGHPUT
+#■ HTTP,,,,
+http_defaults,HTTPリクエスト初期値,ON,ON,文字コード・タイムアウトの共通設定（HTTP Request Defaults）
+connect_timeout,接続タイムアウト(ms),10000,10000,-JCONNECT_TIMEOUT
+response_timeout,応答タイムアウト(ms),30000,30000,-JRESPONSE_TIMEOUT
+common_headers,共通ヘッダ,"Accept: application/json
+User-Agent: JMeter-API-Test/1.0
+X-Client-Id: ${CLIENT_ID}",（空欄）,全 API に付けるヘッダ。「名前: 値」を改行区切り
+access_token_dir,アクセストークンのフォルダ,,（空欄）,指定すると、このフォルダ配下のファイルからアクセストークンを読み込み、共通ヘッダに Authorization: Bearer ${ACCESS_TOKEN} を付けます（共通ヘッダに Authorization がある場合はその値を使用）。空欄 = 使わない。JMX からの相対パスまたは絶対パス（区切りは \ と / のどちらでも可。; で区切って複数書くと、存在する最初のフォルダを使用）。-JACCESS_TOKEN_DIR
+access_token_file,アクセストークンのファイル名,access_token.txt,access_token.txt,アクセストークンを書いたファイルの名前（フォルダからの相対パス）。*.token のように * を含めると、一致するファイルのうち更新日時が最も新しいファイルを使います。前後の空白・改行は除き、実行中にファイルが更新されると読み直します。-JACCESS_TOKEN_FILE
+follow_redirects,リダイレクト追従,true,true,true = 3xx 応答の Location を自動で追従
+keep_alive,KeepAlive,true,true,true = 接続を再利用する
+default_wait_ms,既定の待機時間(ms),0,0,API一覧の「待機時間」が空欄の API に使う値（0 = 待機なし）
+#■ クッキー,,,,
+cookie_manager,クッキー管理,ON,ON,HTTP Cookie Manager（Set-Cookie を保存して以降のリクエストで送信）
+cookie_clear_each_iteration,反復ごとにクリア,true,true,true = ループのたびにクッキーを消去（毎回新しいセッション）
+cookies,事前設定クッキー,LANG=ja,（空欄）,最初から送信するクッキー。「名前=値」を改行区切り
+cookie_domain,クッキーのドメイン,,（空欄）,事前設定クッキーのドメイン。空欄 = 1 つ目の接続先（${HOST}）
+#■ 変数,,,,
+user_variables,共通変数,"ENV=staging
+CLIENT_ID=jmeter-client",（空欄）,「名前=値」を改行区切り。${名前} で参照でき、実行時に -J名前=値 で変更可
+counter,連番,ON,ON,反復ごとに連番を設定する Counter
+counter_name,連番の変数名,SEQ,SEQ,連番を入れる変数名
+counter_start,連番の開始値,1,1,
+counter_increment,連番の増分,1,1,
+counter_format,連番の書式,000000,000000,0 埋めの桁数など（Java の DecimalFormat 形式）。空欄 = 書式なし
+counter_per_thread,スレッドごとの連番,false,false,true = スレッドごとに開始値から採番 / false = 全スレッドで一意
+random_variable,乱数,ON,ON,反復ごとに乱数を設定する Random Variable
+random_name,乱数の変数名,RANDOM_NO,RANDOM_NO,
+random_min,乱数の最小値,1,1,
+random_max,乱数の最大値,99999,99999,
+#■ CSVデータ,,,,
+csv_data,CSVデータ読込,ON,ON,CSV Data Set Config（1 反復につき 1 行を読み込み、列を変数に設定）
+csv_file,CSVファイル,data/testdata.csv,data/testdata.csv,JMX からの相対パスまたは絶対パス。-JCSV_FILE
+csv_variables,CSVの変数名,,（空欄）,カンマ区切り。空欄 = 生成時に CSV ファイルの 1 行目を読み取って設定
+csv_encoding,CSVの文字コード,UTF-8,UTF-8,
+csv_delimiter,CSVの区切り文字,",",",",
+csv_recycle,終端で先頭に戻る,true,true,true = 最終行の次は先頭行に戻る
+csv_stop_thread,終端でスレッド停止,false,false,true = 最終行まで読んだらスレッドを停止（csv_recycle=false と併用）
+csv_share_mode,CSVの共有範囲,all,all,all = 全スレッドで共有 / group = スレッドグループ単位 / thread = スレッドごとに先頭から
+#■ Excelデータ,,,,
+excel_data,Excelデータ読込,ON,ON,Excel（.xlsx）の読み込み。Apache POI などの追加ライブラリは不要
+excel_file,Excelファイル,data/testdata.xlsx,data/testdata.xlsx,JMX からの相対パスまたは絶対パス。-JEXCEL_FILE
+excel_sheet,シート名,,（空欄）,空欄 = 先頭のシート。-JEXCEL_SHEET
+#■ 前後処理,,,,
+setup_teardown,開始・終了処理,ON,ON,テスト開始・終了時のログ出力と後片付け（setUp / tearDown Thread Group）
+common_preprocessor,共通前処理,ON,ON,全 API の直前に実行する JSR223 PreProcessor（REQUEST_ID・TIMESTAMP 等を生成）
+common_postprocessor,共通後処理,ON,ON,全 API の直後に実行する JSR223 PostProcessor（LAST_STATUS 等を設定）
+#■ 結果出力,,,,
+result_dir,結果出力フォルダ,~/result,~/result,JTL・結果ログの出力先。~/ = JMX のフォルダ。-JRESULT_DIR（run コマンドは自動設定）
+view_results_tree,結果ツリー,ON,ON,View Results Tree（GUI での確認用）
+summary_report,集計レポート,ON,ON,Summary Report（GUI での確認用）
+aggregate_report,統計レポート,ON,ON,Aggregate Report（GUI での確認用。パーセンタイル）
+jtl_writer,JTL出力(全件),ON,ON,全リクエストの結果を result_all.jtl（CSV）に出力
+error_writer,エラー詳細出力,ON,ON,失敗したリクエストのみ error_detail.xml（リクエスト・レスポンス全文）に出力
+result_log,結果ログ出力,ON,ON,1 リクエスト 1 行の結果ログ api_result.log を出力（JSR223 Listener）
+log_response,結果ログの本文出力,error,error,none = 出力しない / error = 失敗時のみ / all = 全件。-JLOG_RESPONSE
+log_max_chars,本文の最大文字数,1000,1000,結果ログに出力する本文の最大文字数。-JLOG_MAX_CHARS
+debug_sampler,変数確認(デバッグ),DISABLE,DISABLE,Debug Sampler（全変数を結果ツリーに表示）

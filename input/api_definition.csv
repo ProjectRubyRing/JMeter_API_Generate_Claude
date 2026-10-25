@@ -1,0 +1,30 @@
+﻿No,有効,API名,メソッド,URL,クエリパラメータ,ヘッダ,ボディ形式,リクエストボディ,待機時間(ms),期待ステータス,応答検証文字列,応答時間上限(ms),正規表現抽出,JSON抽出,前処理スクリプト,後処理スクリプト,備考
+#説明,Y / N,任意,GET / POST,必須（https://～）,名前=値（改行 / & 区切り）,名前: 値（改行区切り）,auto / json / form / raw,JSON 等 / 名前=値,数値（ms）,"200 / 200,201",文字列（改行区切り）,数値（ms）,変数名=正規表現（改行区切り）,変数名=JSONPath（改行区切り）,Groovy,Groovy,任意
+1,Y,ログイン(POST JSON),POST,https://postman-echo.com/post,,"Content-Type: application/json
+X-Correlation-ID: ${REQUEST_ID}
+X-Signature: ${SIGNATURE}",json,"{
+  ""userId"": ""${USER_ID}"",
+  ""password"": ""${PASSWORD}"",
+  ""requestNo"": ""${SEQ}"",
+  ""timestamp"": ""${TIMESTAMP}""
+}",500,200,${USER_ID},5000,"ECHO_URL=""url""\s*:\s*""([^""]+)""","AUTH_TOKEN=$.json.userId
+LOGIN_SEQ=$.json.requestNo","// 署名の生成例: USER_ID + TIMESTAMP の SHA-256（16進）を変数 SIGNATURE に設定
+String src = (vars.get('USER_ID') ?: '') + (vars.get('TIMESTAMP') ?: '')
+def digest = java.security.MessageDigest.getInstance('SHA-256').digest(src.getBytes('UTF-8'))
+vars.put('SIGNATURE', digest.encodeHex().toString())","// 応答 JSON の解析例: 値を取り出して次の API で使う変数に設定
+try {
+    def json = new groovy.json.JsonSlurper().parseText(prev.getResponseDataAsString())
+    vars.put('LOGIN_USER', String.valueOf(json?.json?.userId))
+} catch (Exception e) {
+    log.warn('ログイン応答の解析に失敗しました: ' + e.getMessage())
+}",JSON を POST する例（postman-echo.com は送信内容をそのまま返す）
+2,Y,商品検索(GET),GET,https://postman-echo.com/get,"keyword=${KEYWORD}
+itemCode=${ITEM_CODE}
+rand=${RANDOM_NO}
+page=1",Authorization: Bearer ${AUTH_TOKEN},,,1000,200,${ITEM_CODE},5000,,SEARCH_KEYWORD=$.args.keyword,,,GET とクエリパラメータの例（CSV・Excel・乱数の変数を使用）
+3,Y,注文登録(POST form),POST,https://postman-echo.com/post?source=jmeter,channel=web,Authorization: Bearer ${AUTH_TOKEN},form,"itemCode=${ITEM_CODE}
+itemName=${ITEM_NAME}
+quantity=${QUANTITY}
+orderNo=ORD${SEQ}",1000,"200,201",ORD${SEQ},5000,"ORDER_NO=""orderNo""\s*:\s*""([^""]+)""",,,"// 抽出した値の利用例（jmeter.log に出力）
+log.info('注文番号=' + vars.get('ORDER_NO') + ' / ステータス=' + prev.getResponseCode())",form 形式の POST の例（POST のクエリパラメータは URL に付与）
+4,Y,クッキー確認(GET),GET,https://postman-echo.com/cookies/set,session_id=S${SEQ},,,,500,200,session_id,5000,,SESSION_COOKIE=$.cookies.session_id,,,Set-Cookie とリダイレクト追従の例（クッキー管理を使用）

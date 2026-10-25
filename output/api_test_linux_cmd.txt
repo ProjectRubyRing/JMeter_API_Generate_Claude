@@ -1,0 +1,143 @@
+################################################################################
+#  JMeter CLI の実行コマンド（Linux サーバ用）
+#    JMX          : api_test.jmx
+#    テストプラン : APIテスト
+#    作成         : jmeter_api_tool 1.0.0（2026-10-25 11:36:20）
+################################################################################
+このファイルは、JMX を Linux サーバに持ち込み、JMeter の CLI（非 GUI）モードで実行するためのコマンドと、
+各パラメータの説明です。-J で指定している値は JMX の既定値です。必要に応じて書き換えてから実行してください。
+
+================================================================================
+1. 前提
+================================================================================
+- Java 17（8 以上）と Apache JMeter 5.6.3 がインストールされていること（例: /opt/apache-jmeter-5.6.3）。
+  確認: java -version / jmeter -v
+- jmeter にパスが通っていない場合は、下のコマンドの jmeter を /opt/apache-jmeter-5.6.3/bin/jmeter のように
+  フルパスで書いてください。
+
+================================================================================
+2. サーバに持ち込むファイル（JMX と同じフォルダ構成で配置します）
+================================================================================
+  JMX を置くフォルダ（例: /opt/jmeter_test）
+    api_test.jmx        テスト計画（JMX）
+    data/testdata.csv   CSV データ（CSV_FILE）
+    data/testdata.xlsx  Excel データ（EXCEL_FILE）
+
+  転送の例: scp -r <JMX のフォルダ>/ ユーザー@サーバ:/opt/jmeter_test/
+  ※ 相対パスは JMX のフォルダが基準です。ファイルが無いと CSV データ読込などの要素がエラーになるため、
+     使わない要素は JMX から削除するか、ファイルを配置してください。
+
+================================================================================
+3. 実行コマンド（そのまま貼り付けて実行できます）
+================================================================================
+cd /opt/jmeter_test
+RUN_DIR="result/api_test_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$RUN_DIR"
+export HEAP="-Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m"
+jmeter -n -t api_test.jmx \
+  -l "$RUN_DIR/result.jtl" \
+  -j "$RUN_DIR/jmeter.log" \
+  -e -o "$RUN_DIR/report" \
+  -Jjmeter.save.saveservice.subresults=false \
+  -JRESULT_DIR="$RUN_DIR" \
+  -JTHREADS=1 \
+  -JRAMP_UP=1 \
+  -JLOOPS=1 \
+  -JTHROUGHPUT=600 \
+  -JPROTOCOL=https \
+  -JHOST=postman-echo.com \
+  -JPORT= \
+  -JCONNECT_TIMEOUT=10000 \
+  -JRESPONSE_TIMEOUT=30000 \
+  -JCSV_FILE=data/testdata.csv \
+  -JEXCEL_FILE=data/testdata.xlsx \
+  -JEXCEL_SHEET= \
+  -JLOG_RESPONSE=error \
+  -JLOG_MAX_CHARS=1000 \
+  -JENV=staging \
+  -JCLIENT_ID=jmeter-client
+
+1 行で書く場合:
+jmeter -n -t api_test.jmx -l "$RUN_DIR/result.jtl" -j "$RUN_DIR/jmeter.log" -e -o "$RUN_DIR/report" -Jjmeter.save.saveservice.subresults=false -JRESULT_DIR="$RUN_DIR" -JTHREADS=1 -JRAMP_UP=1 -JLOOPS=1 -JTHROUGHPUT=600 -JPROTOCOL=https -JHOST=postman-echo.com -JPORT= -JCONNECT_TIMEOUT=10000 -JRESPONSE_TIMEOUT=30000 -JCSV_FILE=data/testdata.csv -JEXCEL_FILE=data/testdata.xlsx -JEXCEL_SHEET= -JLOG_RESPONSE=error -JLOG_MAX_CHARS=1000 -JENV=staging -JCLIENT_ID=jmeter-client
+
+長時間の実行で端末を閉じても続ける場合は、コマンドの前に nohup、後ろに > "$RUN_DIR/console.log" 2>&1 & を付けます。
+  例: nohup jmeter -n -t ...（上と同じオプション） > "$RUN_DIR/console.log" 2>&1 &
+
+================================================================================
+4. JMeter のオプション
+================================================================================
+  -n                          CLI（非 GUI）モードで実行します。
+  -t JMX                      実行するテスト計画（JMX）。
+  -l ファイル                 全リクエストの結果（JTL。CSV 形式）の出力先。
+  -j ファイル                 JMeter の実行ログ（jmeter.log）の出力先。
+  -e                          テスト終了後に HTML レポートを作成します。
+  -o フォルダ                 HTML レポートの出力先（存在しないか空のフォルダ）。
+  -J名前=値                   JMeter プロパティ。JMX の ${__P(名前,既定値)} の値を実行時に変更します（下記 5.）。
+  -Jjmeter.save.saveservice.subresults=false
+                              リダイレクトなどのサブ結果を JTL に出力しません（件数が API の実行回数と一致します）。
+  -f                          （任意）既存の結果ファイル・レポートフォルダを削除してから実行します。
+  -H ホスト -P ポート         （任意）プロキシサーバー経由で接続します。
+  -L レベル                   （任意）ログレベル（例: -LDEBUG）。
+  環境変数 HEAP               JVM のヒープサイズ。スレッド数が多い場合は増やします（例: -Xms4g -Xmx4g）。
+
+================================================================================
+5. プロパティ（-J名前=値）の説明（この JMX で使用しているもの）
+================================================================================
+  -JTHREADS=1
+      スレッド数（同時に実行する仮想ユーザー数）。既定値: 1
+  -JRAMP_UP=1
+      ランプアップ秒数（全スレッドが起動し終わるまでの秒数）。既定値: 1
+  -JLOOPS=1
+      ループ回数（各スレッドが API を繰り返す回数。-1 = 無限。DURATION と併用）。既定値: 1
+  -JTHROUGHPUT=600
+      スループット制御の目標（1 分あたりの件数。メイン処理全体の合計。スループット制御を有効にした場合のみ）。既定値: 600
+  -JPROTOCOL=https
+      接続先のプロトコル（http / https）。既定値: https
+  -JHOST=postman-echo.com
+      接続先のホスト名。既定値: postman-echo.com
+  -JPORT=
+      接続先のポート番号（空欄 = http は 80 / https は 443）。既定値: （空欄）
+  -JCONNECT_TIMEOUT=10000
+      接続タイムアウト（ミリ秒）。既定値: 10000
+  -JRESPONSE_TIMEOUT=30000
+      応答タイムアウト（ミリ秒）。既定値: 30000
+  -JCSV_FILE=data/testdata.csv
+      CSV データファイル（相対パスは JMX のフォルダ基準）。既定値: data/testdata.csv
+  -JEXCEL_FILE=data/testdata.xlsx
+      Excel データファイル（相対パスは JMX のフォルダ基準）。既定値: data/testdata.xlsx
+  -JEXCEL_SHEET=
+      Excel データのシート名（空欄 = 先頭のシート）。既定値: （空欄）
+  -JRESULT_DIR="$RUN_DIR"
+      結果ログ（api_result.log）・JTL 出力（result_all.jtl）・エラー詳細（error_detail.xml）の出力先。上のコマンドでは "$RUN_DIR" を指定しています。既定値: ~/result
+  -JLOG_RESPONSE=error
+      結果ログへの本文の出力（none = 出力しない / error = 失敗時のみ / all = 全件）。既定値: error
+  -JLOG_MAX_CHARS=1000
+      結果ログに出力する本文の最大文字数。既定値: 1000
+  -JENV=staging
+      共通変数（設定 user_variables）。JMX の中の ${名前} で参照されます。既定値: staging
+  -JCLIENT_ID=jmeter-client
+      共通変数（設定 user_variables）。JMX の中の ${名前} で参照されます。既定値: jmeter-client
+
+================================================================================
+6. 実行後の確認
+================================================================================
+  ls "$RUN_DIR"                                                   # result.jtl / jmeter.log / report/ / api_result.log など
+  awk -F',' 'NR>1 && $8=="false"' "$RUN_DIR/result.jtl" | wc -l   # 失敗件数（ラベルにカンマが無い場合）
+  grep -E ' (ERROR|WARN) ' "$RUN_DIR/jmeter.log" | tail -n 20     # エラー・警告の確認
+  HTML レポート: "$RUN_DIR/report/index.html" をブラウザで開きます
+  （手元に取得する例: scp -r ユーザー@サーバ:/opt/jmeter_test/result ./）
+
+================================================================================
+7. 実行中の停止
+================================================================================
+  /opt/apache-jmeter-5.6.3/bin/shutdown.sh   # 実行中のリクエストの完了を待って停止
+  /opt/apache-jmeter-5.6.3/bin/stoptest.sh   # すぐに停止
+
+================================================================================
+8. 補足
+================================================================================
+- RESULT_DIR を相対パスで指定した場合は、jmeter を実行したフォルダ（カレントディレクトリ）が基準になります。
+  上のコマンドでは、結果をすべて "$RUN_DIR" にまとめています。
+- このツール（jmeter_api_tool.sh）もサーバに持ち込んだ場合は、次のコマンドでも同じように実行できます
+  （結果フォルダの作成・集計結果の表示まで行います）。
+    ./jmeter_api_tool.sh run -t api_test.jmx --threads 10 --loops 100

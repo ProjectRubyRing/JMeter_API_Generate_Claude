@@ -1,0 +1,9 @@
+# Keep line endings stable when this folder is put under git
+*.sh   text eol=lf
+*.md   text eol=lf
+*.jmx  text eol=lf
+*.txt  text eol=lf
+*.ps1  text eol=crlf
+*.bat  text eol=crlf
+*.csv  text eol=crlf
+*.xlsx binary
